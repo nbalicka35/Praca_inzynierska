@@ -97,8 +97,9 @@ class HelperMethods:
         for row in range(batch_size // sample_size):
             for col in range(sample_size):
                 image = plt.imread(self.files[row * sample_size + col])
-                axs[row][col].imshow(image, aspect='auto')
+                axs[row][col].imshow(image, aspect='equal')
                 axs[row][col].axis('off')
+                axs[row][col].set_aspect('equal')
 
         plt.subplots_adjust(wspace=0, hspace=0)
         plt.show()
