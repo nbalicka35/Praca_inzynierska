@@ -1,28 +1,26 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import cv2
 
 class DataExplorer:
     def __init__(self, dataset=None):
-        self.images = None
+        self.gray_images = None
         self.data = dataset
 
     def retrieve_sample_of_images(self, indexes):
-        images = []
+        gray_images = []
         for idx in indexes:
             img = self.data[idx]
             img = cv2.imread(img)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-            images.append(img)
+            gray_images.append(img)
 
-        self.images = images
-        return images
+        self.gray_images = gray_images
+        return gray_images
 
     def plot_histogram(self, bins=16, title=None):
-        fig, axs = plt.subplots(2, len(self.images), figsize = (14, 8))
+        fig, axs = plt.subplots(2, len(self.gray_images), figsize = (14, 8))
         fig.suptitle(title, fontsize = 20)
-        for idx, img in enumerate(self.images):
+        for idx, img in enumerate(self.gray_images):
             axs[0, idx].imshow(img, cmap='gray')
             axs[0, idx].axis('off')
 

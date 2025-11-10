@@ -88,6 +88,20 @@ class HelperMethods:
         show_image(self.files[1], 'Brain tumor image')
         print(f"{self.files[0]}\n{self.files[-1]}\n{self.files[1]}\n{len(self.files)}")
 
+    def show_batch_of_images(self, batch_size=64):
+        sample_size = 8  # 8 images per one row
+        fig, axs = plt.subplots(batch_size // sample_size, sample_size, figsize=(12, 12))
+
+        fig.suptitle(f"{batch_size} MRI images.", fontsize = 20)
+
+        for row in range(batch_size // sample_size):
+            for col in range(sample_size):
+                image = plt.imread(self.files[row * sample_size + col])
+                axs[row][col].imshow(image, aspect='auto')
+                axs[row][col].axis('off')
+
+        plt.subplots_adjust(wspace=0, hspace=0)
+        plt.show()
 
 
 test_dir = './data/Testing'
@@ -98,7 +112,7 @@ duplicate_detector = DuplicateDetector()
 
 files = helper.load_all_images(test_dir, train_dir)
 duplicate_detector._set_files(files)
-
+helper.show_batch_of_images()
 # show_sample(files)
 
 #copies = duplicate_detector.detect_duplicates()
