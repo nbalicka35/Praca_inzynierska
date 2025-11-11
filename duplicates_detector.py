@@ -2,6 +2,7 @@ import filecmp
 import os
 from exploratory_analysis import *
 import matplotlib.image as mpimg
+import numpy as np
 
 class DuplicateDetector:
     def __init__(self, files = None):
@@ -60,6 +61,32 @@ def show_original_and_duplicated(dir1, dir2):
     plt.show()
 
 
+def print_class_count(dataset_dir):
+    out = ""
+    subdirs = os.listdir(dataset_dir)
+
+    for subdir in subdirs:
+        subdir_path = os.path.join(dataset_dir, subdir)
+        if not os.path.isdir(subdir_path):
+            continue
+
+        out += f"{subdir} folder details:\n"
+
+        classes = os.listdir(subdir_path)
+
+        for cl in classes:
+            class_path = os.path.join(subdir_path, cl)
+            if not os.path.isdir(class_path):
+                continue
+
+            files = os.listdir(class_path)
+            counter = sum(1 for f in files if os.path.isfile(os.path.join(class_path, f)))
+
+            out += f"\t{cl}: {counter} images\n"
+
+    print(out)
+
+
 class HelperMethods:
     def __init__(self):
         self.files = None
@@ -105,6 +132,62 @@ class HelperMethods:
         plt.show()
 
 
+    def convert_images_to_gray(self):
+        gray_images = []
+        for f in self.files:
+            gray_img = cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY)
+            gray_images.append(gray_img)
+
+        return gray_images
+    
+def find_brightest_image(gray_images):
+    max_brightness = 0
+    brightest_image = None
+
+    for image in gray_images:
+        brightness = np.mean(image)
+        if brightness > max_brightness:
+            max_brightness = brightness
+            brightest_image = image
+
+    return brightest_image, max_brightness
+
+def find_darkest_image(gray_images):
+    min_brightness = gray_images[0]
+    darkest_image = None
+
+    for image in gray_images:
+        brightness = np.mean(image)
+        if brightness < min_brightness:
+            min_brightness = brightness
+            darkest_image = image
+
+    return darkest_image, min_brightness
+
+
+def get_dataset_mean(images):
+    sum = 0
+    count = 0
+
+    for image in images:
+        sum += np.sum(image)
+        count += 1
+
+    return sum / count
+
+def get_dataset_std(images, mean = None):
+    if mean is None:
+        mean = get_dataset_mean(images)
+
+    squared_dif = 0
+    count = 0
+
+    for image in images:
+        squared_dif += np.sum((image - mean) ** 2)
+        count += image.shape[0] * image.shape[1]
+
+    return np.sqrt(squared_dif / count)
+
 test_dir = './data/Testing'
 train_dir = './data/Training'
 
@@ -118,6 +201,8 @@ helper.show_batch_of_images()
 
 #copies = duplicate_detector.detect_duplicates()
 #files = duplicate_detector.clear_file_list()
+
+print_class_count("./data")
 
 explorator = DataExplorer(files)
 explorator.retrieve_sample_of_images([0, -1, len(files) // 2])

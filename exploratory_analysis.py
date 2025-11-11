@@ -28,3 +28,6 @@ class DataExplorer:
 
         fig.tight_layout()
         plt.show()
+
+    def print_dataset_size(self):
+        print(f"Total dataset samples: {len(self.data)}")
