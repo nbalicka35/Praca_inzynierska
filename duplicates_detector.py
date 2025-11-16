@@ -4,8 +4,9 @@ from exploratory_analysis import *
 import matplotlib.image as mpimg
 import numpy as np
 
+
 class DuplicateDetector:
-    def __init__(self, files = None):
+    def __init__(self, files=None):
         self.files = files
         self.duplicates = None
 
@@ -30,7 +31,7 @@ class DuplicateDetector:
                     if res:
                         duplicates.append(file2)
                         if len(duplicates) < 11:
-                            show_original_and_duplicated(file1, file2)
+                            show_original_and_duplicated_from_directory(file1, file2)
         print(f"Detected {len(duplicates)} duplicates")
         self.duplicates = duplicates
         return duplicates
@@ -43,25 +44,25 @@ class DuplicateDetector:
             os.remove(duplicate)
 
 
-def show_image(dir, caption):
+def show_image_from_directory(dir, caption):
     img = cv2.imread(dir)
     cv2.imshow(caption, img)
     cv2.waitKey(0)
 
 
-def show_original_and_duplicated(dir1, dir2):
+def show_original_and_duplicated_from_directory(dir1, dir2):
     img1 = mpimg.imread(dir1)
     img2 = mpimg.imread(dir2)
 
     fig, axs = plt.subplots(1, 2)
-    axs[0].title.set_text('Original image')
+    axs[0].title.set_text("Original image")
     axs[0].imshow(img1)
-    axs[1].title.set_text('Duplicated image')
+    axs[1].title.set_text("Duplicated image")
     axs[1].imshow(img2)
     plt.show()
 
 
-def print_class_count(dataset_dir):
+def print_total_class_count(dataset_dir):
     out = ""
     subdirs = os.listdir(dataset_dir)
 
@@ -80,7 +81,9 @@ def print_class_count(dataset_dir):
                 continue
 
             files = os.listdir(class_path)
-            counter = sum(1 for f in files if os.path.isfile(os.path.join(class_path, f)))
+            counter = sum(
+                1 for f in files if os.path.isfile(os.path.join(class_path, f))
+            )
 
             out += f"\t{cl}: {counter} images\n"
 
@@ -88,58 +91,77 @@ def print_class_count(dataset_dir):
 
 
 class HelperMethods:
-    def __init__(self):
-        self.files = None
+    def __init__(self, train_dir=None, test_dir=None):
+        self._total_files = None
+        self.train_dir = train_dir
+        self.test_dir = test_dir
 
-    def load_all_images(self, test_dir, train_dir):
+    def set_train_dir(self, new_train_dir):
+        self.train_dir = new_train_dir
+
+    def set_test_dir(self, new_test_dir):
+        self.test_dir = new_test_dir
+
+    def get_test_dir(self):
+        return self.test_dir
+
+    def get_train_dir(self):
+        return self.train_dir
+
+    def load_all_images(self):
         files = []
 
-        train_subdirs = [f.path for f in os.scandir(train_dir) if f.is_dir()]
-        test_subdirs = [f.path for f in os.scandir(test_dir) if f.is_dir()]
+        train_subdirs = [f.path for f in os.scandir(self.train_dir) if f.is_dir()]
+        test_subdirs = [f.path for f in os.scandir(self.test_dir) if f.is_dir()]
 
         for subdir in train_subdirs:
             for filename in os.listdir(subdir):
-                if filename.endswith('.jpg'):
+                if filename.endswith(".jpg"):
                     files.append(os.path.join(subdir, filename))
 
         for subdir in test_subdirs:
             for filename in os.listdir(subdir):
-                if filename.endswith('.jpg'):
+                if filename.endswith(".jpg"):
                     files.append(os.path.join(subdir, filename))
-        self.files = files
-        return files
 
-    def show_sample(self):
-        show_image(self.files[0], 'Brain tumor image')
-        show_image(self.files[-1], 'Brain tumor image')
-        show_image(self.files[1], 'Brain tumor image')
-        print(f"{self.files[0]}\n{self.files[-1]}\n{self.files[1]}\n{len(self.files)}")
+        self._total_files = files
+        return files
 
     def show_batch_of_images(self, batch_size=64):
         sample_size = 8  # 8 images per one row
-        fig, axs = plt.subplots(batch_size // sample_size, sample_size, figsize=(12, 12))
+        fig, axs = plt.subplots(
+            batch_size // sample_size, sample_size, figsize=(12, 12)
+        )
 
-        fig.suptitle(f"{batch_size} MRI images.", fontsize = 20)
+        fig.suptitle(f"{batch_size} MRI images.", fontsize=20)
 
         for row in range(batch_size // sample_size):
             for col in range(sample_size):
-                image = plt.imread(self.files[row * sample_size + col])
-                axs[row][col].imshow(image, aspect='equal')
-                axs[row][col].axis('off')
-                axs[row][col].set_aspect('equal')
+                image = plt.imread(self._total_files[row * sample_size + col])
+                axs[row][col].imshow(image, aspect="equal")
+                axs[row][col].axis("off")
+                axs[row][col].set_aspect("equal")
 
         plt.subplots_adjust(wspace=0, hspace=0)
         plt.show()
 
+    def show_sample(self):
+        show_image_from_directory(self._total_files[0], "Brain tumor image")
+        show_image_from_directory(self._total_files[-1], "Brain tumor image")
+        show_image_from_directory(self._total_files[1], "Brain tumor image")
+        print(
+            f"{self._total_files[0]}\n{self._total_files[-1]}\n{self._total_files[1]}\n{len(self._total_files)}"
+        )
 
     def convert_images_to_gray(self):
         gray_images = []
-        for f in self.files:
+        for f in self._total_files:
             gray_img = cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY)
             gray_images.append(gray_img)
 
         return gray_images
-    
+
+
 def find_brightest_image(gray_images):
     max_brightness = 0
     brightest_image = None
@@ -152,8 +174,9 @@ def find_brightest_image(gray_images):
 
     return brightest_image, max_brightness
 
+
 def find_darkest_image(gray_images):
-    min_brightness = gray_images[0]
+    min_brightness = float("inf")
     darkest_image = None
 
     for image in gray_images:
@@ -166,44 +189,57 @@ def find_darkest_image(gray_images):
 
 
 def get_dataset_mean(images):
-    sum = 0
-    count = 0
+    means = []
 
     for image in images:
-        sum += np.sum(image)
-        count += 1
+        means.append(np.mean(image))
 
-    return sum / count
+    return np.mean(means)
 
-def get_dataset_std(images, mean = None):
+
+def get_dataset_std(images, mean=None):
     if mean is None:
         mean = get_dataset_mean(images)
 
-    squared_dif = 0
-    count = 0
+    all_pixels = []
 
     for image in images:
-        squared_dif += np.sum((image - mean) ** 2)
-        count += image.shape[0] * image.shape[1]
+        all_pixels.extend(image.flatten())
 
-    return np.sqrt(squared_dif / count)
+    all_pixels = np.array(all_pixels)
+    return np.std(all_pixels)
 
-test_dir = './data/Testing'
-train_dir = './data/Training'
 
-helper = HelperMethods()
+test_dir = "./data/Testing"
+train_dir = "./data/Training"
+
+helper = HelperMethods(train_dir, test_dir)
 duplicate_detector = DuplicateDetector()
 
-files = helper.load_all_images(test_dir, train_dir)
+files = helper.load_all_images()
 duplicate_detector._set_files(files)
 helper.show_batch_of_images()
-# show_sample(files)
+# helper.show_sample()
 
-#copies = duplicate_detector.detect_duplicates()
-#files = duplicate_detector.clear_file_list()
+# copies = duplicate_detector.detect_duplicates()
+# files = duplicate_detector.clear_file_list()
 
-print_class_count("./data")
+print_total_class_count("./data")
 
 explorator = DataExplorer(files)
 explorator.retrieve_sample_of_images([0, -1, len(files) // 2])
 explorator.plot_histogram(title="Images and their corresponding histograms")
+
+gray_imgs = helper.convert_images_to_gray()
+print(f"Dataset mean: {get_dataset_mean(gray_imgs)}")
+print(f"Dataset standard deviation: {get_dataset_std(gray_imgs)}")
+
+img, brightness = find_darkest_image(gray_imgs)
+cv2.imshow("The darkest image in the dataset", img)
+cv2.waitKey(0)
+print(f"The darkest image brightness: {brightness}")
+
+img, brightness = find_brightest_image(gray_imgs)
+cv2.imshow("The brightest image in the dataset", img)
+cv2.waitKey(0)
+print(f"The brightest image brightness: {brightness}")
