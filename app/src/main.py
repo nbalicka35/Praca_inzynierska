@@ -32,20 +32,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Window properties
+        self.setWindowTitle("Neuron Desktop App")
+        self.setMinimumSize(QSize(1280, 720))
+
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("background-color: #FFFAF2;")
 
         self.predict_enabled = False
 
-        self.setWindowTitle("Neuron Desktop App")
-        self.setMinimumSize(QSize(1280, 720))
-
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
+        # Top bar
         self.top_bar = TopBar()
 
+        # White card
         self.card = QWidget()
         self.card.setObjectName("card")
         self.card.setStyleSheet(
@@ -61,50 +64,74 @@ class MainWindow(QMainWindow):
         self.card_layout = QHBoxLayout(self.card)
         self.card_layout.setContentsMargins(30, 30, 30, 30)
 
+        # Left column inside the card
         left_column = QVBoxLayout()
 
-        self.step1 = StepLabel(1)
-        self.file_label = QLabel("Choose a .jpg file or directory")
+        # Step 1
+        step1_label = QLabel("Step 1")
+        step1_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step1_desc = QLabel("Select .jpg file or directory")
 
+        # Choice buttons
+        buttons_layout = QHBoxLayout()
         self.file_button = QPushButton("Choose file")
-        self.file_button.setMaximumSize(210, 45)
-        self.file_button.clicked.connect(self.open_file)
-
         self.dir_button = QPushButton("Choose directory")
-        self.dir_button.setMinimumSize(210, 45)
-        self.dir_button.clicked.connect(self.open_directory)
+        buttons_layout.addWidget(self.file_button)
+        buttons_layout.addWidget(self.dir_button)
+        buttons_layout.addStretch()
 
-        left_column.addWidget(self.step1)
-        left_column.addWidget(self.file_label)
-        left_column.addWidget(self.file_button)
-        left_column.addWidget(self.dir_button)
+        self.preview_label = QLabel("Preview of selected image(s) will appear below")
 
-        self.step2 = StepLabel(2)
-        self.p_label = QLabel("Click the button below")
-
+        # Step 2
+        step2_label = QLabel("Step 2")
+        step2_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step2_desc = QLabel("Examine photo(s)")
         self.predict_button = QPushButton("Predict")
-        self.predict_button.setMaximumSize(210, 45)
-        self.predict_button.setEnabled(self.predict_enabled)
-        self.predict_button.clicked.connect(self.predict)
 
-        left_column.addWidget(self.step2)
-        left_column.addWidget(self.p_label)
+        left_column.addWidget(step1_label)
+        left_column.addWidget(step1_desc)
+        left_column.addLayout(buttons_layout)
+        left_column.addWidget(self.preview_label)
+        left_column.addSpacing(30)
+        left_column.addWidget(step2_label)
+        left_column.addWidget(step2_desc)
         left_column.addWidget(self.predict_button)
+        left_column.addStretch()
 
+        # Right column inside the card
         right_column = QVBoxLayout()
+        right_column.setAlignment(Qt.AlignTop)
 
-        self.step3 = StepLabel(3)
-        self.r_label = QLabel("Read the result")
+        step3_label = QLabel("Step 3")
+        step3_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step3_desc = QLabel("Check the result for the photo(s) below")
 
-        right_column.addWidget(self.step3)
-        right_column.addWidget(self.r_label)
+        # Result(s) panel
+        self.results_card = QWidget()
+        self.results_card.setObjectName("results_card")
+        self.results_card.setStyleSheet(
+            """
+            #results_card {
+                background-color: rgba(148, 211, 255, .2);
+                border-radius: 10px;
+            }
+            """
+        )
+        self.results_card.setMinimumHeight(200)
 
-        self.card_layout.addLayout(left_column)
-        self.card_layout.addLayout(right_column)
+        right_column.addWidget(step3_label)
+        right_column.addWidget(step3_desc)
+        right_column.addWidget(self.results_card, 1)
 
+        # Add columns to the card
+        self.card_layout.addLayout(left_column, 1)
+        self.card_layout.addLayout(right_column, 1)
+
+        # Wrapper + margins
         card_wrapper = QWidget()
+        card_wrapper.setAttribute(Qt.WA_TransparentForMouseEvents, False)
         card_wrapper_layout = QVBoxLayout(card_wrapper)
-        card_wrapper_layout.setContentsMargins(30, 60, 30, 0)
+        card_wrapper_layout.setContentsMargins(20, 0, 20, 0)
         card_wrapper_layout.addWidget(self.card)
 
         main_layout.addWidget(self.top_bar)
