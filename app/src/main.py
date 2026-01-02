@@ -40,9 +40,28 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Neuron Desktop App")
         self.setMinimumSize(QSize(1280, 720))
 
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
         self.top_bar = TopBar()
+
+        self.card = QWidget()
+        self.card.setObjectName("card")
+        self.card.setStyleSheet(
+            """
+            #card {
+                background-color: white;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+            }
+        """
+        )
+
+        self.card_layout = QHBoxLayout(self.card)
+        self.card_layout.setContentsMargins(30, 30, 30, 30)
+
+        left_column = QVBoxLayout()
 
         self.step1 = StepLabel(1)
         self.file_label = QLabel("Choose a .jpg file or directory")
@@ -55,11 +74,10 @@ class MainWindow(QMainWindow):
         self.dir_button.setMinimumSize(210, 45)
         self.dir_button.clicked.connect(self.open_directory)
 
-        ch_layout = QHBoxLayout()
-        ch_layout.addWidget(self.file_button)
-        ch_layout.addWidget(self.dir_button)
-        ch_widget = QWidget()
-        ch_widget.setLayout(ch_layout)
+        left_column.addWidget(self.step1)
+        left_column.addWidget(self.file_label)
+        left_column.addWidget(self.file_button)
+        left_column.addWidget(self.dir_button)
 
         self.step2 = StepLabel(2)
         self.p_label = QLabel("Click the button below")
@@ -69,23 +87,32 @@ class MainWindow(QMainWindow):
         self.predict_button.setEnabled(self.predict_enabled)
         self.predict_button.clicked.connect(self.predict)
 
+        left_column.addWidget(self.step2)
+        left_column.addWidget(self.p_label)
+        left_column.addWidget(self.predict_button)
+
+        right_column = QVBoxLayout()
+
         self.step3 = StepLabel(3)
         self.r_label = QLabel("Read the result")
 
-        layout.addWidget(self.top_bar)
-        layout.addWidget(self.step1)
-        layout.addWidget(self.file_label)
-        layout.addWidget(ch_widget)
-        layout.addWidget(self.step2)
-        layout.addWidget(self.p_label)
-        layout.addWidget(self.predict_button)
-        layout.addWidget(self.step3)
-        layout.addWidget(self.r_label)
+        right_column.addWidget(self.step3)
+        right_column.addWidget(self.r_label)
 
-        widget = QWidget()
-        widget.setLayout(layout)
+        self.card_layout.addLayout(left_column)
+        self.card_layout.addLayout(right_column)
 
-        self.setCentralWidget(widget)
+        card_wrapper = QWidget()
+        card_wrapper_layout = QVBoxLayout(card_wrapper)
+        card_wrapper_layout.setContentsMargins(30, 60, 30, 0)
+        card_wrapper_layout.addWidget(self.card)
+
+        main_layout.addWidget(self.top_bar)
+        main_layout.addWidget(card_wrapper, 1)
+
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
 
     def open_file(self):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
