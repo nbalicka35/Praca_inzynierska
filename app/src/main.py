@@ -82,6 +82,27 @@ class MainWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         self.file_button = QPushButton("Choose file")
         self.dir_button = QPushButton("Choose directory")
+        self.file_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(148, 211, 255, .72);
+                border: 0px;
+                border-radius: 10px;
+                padding: 15px 40px;
+            }
+            """
+        )
+        self.dir_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(148, 211, 255, .72);
+                border: 0px;
+                border-radius: 10px;
+                padding: 15px 40px;
+            }
+            """
+        )
+
         buttons_layout.addWidget(self.file_button)
         buttons_layout.addWidget(self.dir_button)
         buttons_layout.addStretch()
@@ -97,6 +118,16 @@ class MainWindow(QMainWindow):
         step2_desc = QLabel("Examine photo(s)")
         step2_desc.setStyleSheet("background-color:white;")
         self.predict_button = QPushButton("Predict")
+        self.predict_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(148, 211, 255, .72);
+                border: 0px;
+                border-radius: 10px;
+                padding: 15px 0px;
+            }
+            """
+        )
 
         left_column.addWidget(step1_label)
         left_column.addWidget(step1_desc)
