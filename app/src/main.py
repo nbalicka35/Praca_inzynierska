@@ -47,6 +47,7 @@ class MainWindow(QMainWindow):
 
         # Top bar
         self.top_bar = TopBar()
+        self.top_bar.setContentsMargins(0, 0, 0, 50)
 
         # White card
         self.card = QWidget()
@@ -62,15 +63,20 @@ class MainWindow(QMainWindow):
         )
 
         self.card_layout = QHBoxLayout(self.card)
-        self.card_layout.setContentsMargins(30, 30, 30, 30)
+        self.card_layout.setContentsMargins(40, 40, 40, 40)
+        self.card_layout.setSpacing(20)
 
         # Left column inside the card
         left_column = QVBoxLayout()
+        left_column.setAlignment(Qt.AlignTop)
 
         # Step 1
         step1_label = QLabel("Step 1")
-        step1_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step1_label.setStyleSheet(
+            "font-weight: bold; font-size: 16px; background-color:white;"
+        )
         step1_desc = QLabel("Select .jpg file or directory")
+        step1_desc.setStyleSheet("background-color:white;")
 
         # Choice buttons
         buttons_layout = QHBoxLayout()
@@ -81,11 +87,15 @@ class MainWindow(QMainWindow):
         buttons_layout.addStretch()
 
         self.preview_label = QLabel("Preview of selected image(s) will appear below")
+        self.preview_label.setStyleSheet("background-color:white;")
 
         # Step 2
         step2_label = QLabel("Step 2")
-        step2_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step2_label.setStyleSheet(
+            "font-weight: bold; font-size: 16px; background-color:white;"
+        )
         step2_desc = QLabel("Examine photo(s)")
+        step2_desc.setStyleSheet("background-color:white;")
         self.predict_button = QPushButton("Predict")
 
         left_column.addWidget(step1_label)
@@ -103,8 +113,11 @@ class MainWindow(QMainWindow):
         right_column.setAlignment(Qt.AlignTop)
 
         step3_label = QLabel("Step 3")
-        step3_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        step3_label.setStyleSheet(
+            "font-weight: bold; font-size: 16px; background-color: white;"
+        )
         step3_desc = QLabel("Check the result for the photo(s) below")
+        step3_desc.setStyleSheet("background-color:white;")
 
         # Result(s) panel
         self.results_card = QWidget()
@@ -117,7 +130,7 @@ class MainWindow(QMainWindow):
             }
             """
         )
-        self.results_card.setMinimumHeight(200)
+        self.results_card.setMinimumHeight(300)
 
         right_column.addWidget(step3_label)
         right_column.addWidget(step3_desc)
