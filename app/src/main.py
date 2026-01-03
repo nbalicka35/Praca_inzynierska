@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QComboBox,
+    QSizePolicy,
 )
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
 from TopBar import TopBar
@@ -70,38 +71,42 @@ class MainWindow(QMainWindow):
         left_column = QVBoxLayout()
         left_column.setAlignment(Qt.AlignTop)
 
+        # Buttons styles
+        button_style = """
+            QPushButton {
+                background-color: rgba(148, 211, 255, .72);
+                border: 0px;
+                border-radius: 10px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: rgba(148, 211, 255, .9);
+            }
+        """
+        BUTTON_WIDTH = 150
+        BUTTON_HEIGHT = 45
+
         # Step 1
         step1_label = QLabel("Step 1")
         step1_label.setStyleSheet(
-            "font-weight: bold; font-size: 16px; background-color:white;"
+            "font-weight: bold; font-size: 18px; background-color:white;"
         )
         step1_desc = QLabel("Select .jpg file or directory")
-        step1_desc.setStyleSheet("background-color:white;")
+        step1_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Choice buttons
         buttons_layout = QHBoxLayout()
         self.file_button = QPushButton("Choose file")
+        self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        self.file_button.setStyleSheet(button_style)
+        self.file_button.setCursor(Qt.PointingHandCursor)
+        self.file_button.clicked.connect(self.open_file)
+
         self.dir_button = QPushButton("Choose directory")
-        self.file_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(148, 211, 255, .72);
-                border: 0px;
-                border-radius: 10px;
-                padding: 15px 40px;
-            }
-            """
-        )
-        self.dir_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(148, 211, 255, .72);
-                border: 0px;
-                border-radius: 10px;
-                padding: 15px 40px;
-            }
-            """
-        )
+        self.dir_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        self.dir_button.setStyleSheet(button_style)
+        self.dir_button.setCursor(Qt.PointingHandCursor)
+        self.dir_button.clicked.connect(self.open_directory)
 
         buttons_layout.addWidget(self.file_button)
         buttons_layout.addWidget(self.dir_button)
@@ -110,34 +115,72 @@ class MainWindow(QMainWindow):
         self.preview_label = QLabel("Preview of selected image(s) will appear below")
         self.preview_label.setStyleSheet("background-color:white;")
 
+        self.preview_area = QWidget()
+        self.preview_area.setStyleSheet("background-color: white;")
+        self.preview_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.preview_area.setMinimumHeight(100)
+
+        # Clear button
+        clear_layout = QHBoxLayout()
+        self.clear_button = QPushButton("Clear")
+        self.clear_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        self.clear_button.setStyleSheet(button_style)
+        self.clear_button.setCursor(Qt.PointingHandCursor)
+        self.clear_button.clicked.connect(self.clear_selection)
+        clear_layout.addWidget(self.clear_button)
+        clear_layout.addStretch()
+
         # Step 2
         step2_label = QLabel("Step 2")
         step2_label.setStyleSheet(
-            "font-weight: bold; font-size: 16px; background-color:white;"
+            "font-weight: bold; font-size: 18px; background-color:white;"
         )
         step2_desc = QLabel("Examine photo(s)")
-        step2_desc.setStyleSheet("background-color:white;")
+        step2_desc.setStyleSheet("font-size: 16px; background-color:white;")
+
+        # Predict button
+        predict_layout = QHBoxLayout()
         self.predict_button = QPushButton("Predict")
-        self.predict_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: rgba(148, 211, 255, .72);
-                border: 0px;
-                border-radius: 10px;
-                padding: 15px 0px;
-            }
-            """
+        self.predict_button.setEnabled(self.predict_enabled)
+        self.predict_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        self.predict_button.setStyleSheet(button_style)
+        self.predict_button.setCursor(Qt.PointingHandCursor)
+        self.predict_button.clicked.connect(self.predict)
+        predict_layout.addWidget(self.predict_button)
+        predict_layout.addStretch()
+
+        # Disclaimer
+        disclaimer_layout = QHBoxLayout()
+        disclaimer_layout.setAlignment(Qt.AlignLeft)
+        disclaimer_layout.setSpacing(5)
+
+        disclaimer_icon = QLabel("⚠️")
+        disclaimer_icon.setStyleSheet("background-color: white;")
+        disclaimer_icon.setAlignment(Qt.AlignTop)
+
+        disclaimer_text = QLabel(
+            "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
+            "Always examine patients and make a decision based on the knowledge of yours."
         )
+        disclaimer_text.setStyleSheet("background-color: white;")
+        disclaimer_text.setAlignment(Qt.AlignLeft)
+
+        disclaimer_layout.addWidget(disclaimer_icon)
+        disclaimer_layout.addWidget(disclaimer_text)
+        disclaimer_layout.addStretch()
 
         left_column.addWidget(step1_label)
         left_column.addWidget(step1_desc)
         left_column.addLayout(buttons_layout)
         left_column.addWidget(self.preview_label)
-        left_column.addSpacing(30)
+        left_column.addWidget(self.preview_area, 1)  # 1 = stretch factor, full stretch
+        left_column.addLayout(clear_layout)
+        left_column.addSpacing(20)
         left_column.addWidget(step2_label)
         left_column.addWidget(step2_desc)
-        left_column.addWidget(self.predict_button)
-        left_column.addStretch()
+        left_column.addLayout(predict_layout)
+        left_column.addSpacing(20)
+        left_column.addLayout(disclaimer_layout)
 
         # Right column inside the card
         right_column = QVBoxLayout()
@@ -145,10 +188,10 @@ class MainWindow(QMainWindow):
 
         step3_label = QLabel("Step 3")
         step3_label.setStyleSheet(
-            "font-weight: bold; font-size: 16px; background-color: white;"
+            "font-weight: bold; font-size: 18px; background-color: white;"
         )
         step3_desc = QLabel("Check the result for the photo(s) below")
-        step3_desc.setStyleSheet("background-color:white;")
+        step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Result(s) panel
         self.results_card = QWidget()
@@ -206,8 +249,8 @@ class MainWindow(QMainWindow):
             self.predict_button.setEnabled(self.predict_enabled)
 
     def predict(self):
-        print("Prediction in progress...")
-        self.predict_button.setText("Prediction in progress...")
+        self.predict_button.setText("Thinking...")
+        self.clear_button.setEnabled(False)
 
     def change_theme(self):
         if self.theme_button.isChecked():
@@ -215,6 +258,14 @@ class MainWindow(QMainWindow):
 
         else:
             self.theme_button.setText("Light")
+
+    def clear_selection(self):
+        # Clear chosen files
+        self.selected_files = []
+        self.preview_label.setText("Preview of selected image(s) will appear below")
+        self.predict_enabled = False
+        self.predict_button.setEnabled(self.predict_enabled)
+        print("Selection cleared.")
 
 
 app = QApplication([])
