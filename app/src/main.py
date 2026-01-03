@@ -147,6 +147,7 @@ class MainWindow(QMainWindow):
         self.clear_button.setStyleSheet(button_style)
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.clicked.connect(self.clear_selection)
+        self.clear_button.setEnabled(False)
 
         image_row.addWidget(self.thumbnails_container)
         image_row.addSpacing(20)
@@ -275,6 +276,8 @@ class MainWindow(QMainWindow):
 
             self.predict_enabled = True
             self.predict_button.setEnabled(self.predict_enabled)
+            self.clear_button.setVisible(True)
+            self.clear_button.setEnabled(True)
             print(f"{filename} loaded.")
 
     def open_directory(self):
@@ -291,30 +294,41 @@ class MainWindow(QMainWindow):
                     if os.path.isfile(filepath):
                         jpg_files.append(filepath)
 
-            if jpg_files:
-                self.selected_file = None
-                self.selected_files = jpg_files
-                self.selected_directory = dirname
+        self.preview_label.setVisible(False)
+        self.preview_container.setVisible(True)
+        self.clear_thumbnails()
 
-                self.preview_label.setVisible(False)
-                self.preview_container.setVisible(True)
+        if jpg_files:
+            self.selected_file = None
+            self.selected_files = jpg_files
+            self.selected_directory = dirname
 
-                self.file_name_label.setText(
-                    f"Selected {len(jpg_files)} images from {os.path.basename(dirname)}"
-                )
+            self.preview_label.setVisible(False)
+            self.preview_container.setVisible(True)
 
-                self.clear_thumbnails()
-                self.show_directory_preview(jpg_files)
+            self.file_name_label.setText(
+                f"Selected {len(jpg_files)} images from {os.path.basename(dirname)}"
+            )
 
-                self.predict_enabled = True
-                self.predict_button.setEnabled(self.predict_enabled)
-            else:
-                self.file_name_label.setText(
-                    f"No .jpg files found in {os.path.basename(dirname)}"
-                )
-                self.predict_enabled = False
-                self.predict_button.setEnabled(self.predict_enabled)
-                self.clear_thumbnails()
+            self.clear_thumbnails()
+            self.show_directory_preview(jpg_files)
+
+            self.clear_button.setVisible(True)
+            self.clear_button.setEnabled(True)
+
+            self.predict_enabled = True
+            self.predict_button.setEnabled(self.predict_enabled)
+        else:
+            self.selected_files = []
+            self.selected_directory = None
+
+            self.file_name_label.setText(
+                f"No .jpg files found in {os.path.basename(dirname)}"
+            )
+            self.predict_enabled = False
+            self.predict_button.setEnabled(self.predict_enabled)
+            self.clear_button.setVisible(False)
+            self.clear_thumbnails()
 
     def predict(self):
         self.predict_button.setText("Thinking...")
@@ -326,18 +340,6 @@ class MainWindow(QMainWindow):
 
         else:
             self.theme_button.setText("Light")
-
-    def show_image_preview(self, filepath):
-        pixmap = QPixmap(filepath)
-
-        if not pixmap.isNull():
-            scaled = pixmap.scaled(
-                self.image_preview.width(),
-                self.image_preview.height(),
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
-            )
-            self.image_preview.setPixmap(scaled)
 
     def clear_selection(self):
         # Clear chosen files
@@ -353,6 +355,9 @@ class MainWindow(QMainWindow):
 
         self.predict_enabled = False
         self.predict_button.setEnabled(self.predict_enabled)
+
+        self.clear_button.setVisible(True)
+        self.clear_button.setEnabled(False)
         print("Selection cleared.")
 
     def get_preview_size(self):
