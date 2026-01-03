@@ -6,3 +6,4 @@ archive/
 new_data/
 config/
 app/src/__pycache__
+app/utils/__pycache__
