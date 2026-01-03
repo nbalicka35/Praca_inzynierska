@@ -5,3 +5,4 @@ backup/
 archive/
 new_data/
 config/
+app/src/__pycache__

@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
 )
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
+from PyQt5.QtGui import QPixmap
 from TopBar import TopBar
 
 
@@ -33,14 +34,17 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.selected_file = None
+        self.selected_files = []
+        self.selected_directory = None
+        self.predict_enabled = False
+
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
         self.setMinimumSize(QSize(1280, 720))
 
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("background-color: #FFFAF2;")
-
-        self.predict_enabled = False
 
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -115,20 +119,42 @@ class MainWindow(QMainWindow):
         self.preview_label = QLabel("Preview of selected image(s) will appear below")
         self.preview_label.setStyleSheet("background-color:white;")
 
-        self.preview_area = QWidget()
-        self.preview_area.setStyleSheet("background-color: white;")
-        self.preview_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.preview_area.setMinimumHeight(100)
+        self.preview_container = QWidget()
+        self.preview_container.setStyleSheet("background-color: white;")
+        self.preview_container.setVisible(False)
+
+        preview_container_layout = QVBoxLayout(self.preview_container)
+        preview_container_layout.setContentsMargins(0, 0, 0, 0)
+        preview_container_layout.setSpacing(10)
+
+        self.file_name_label = QLabel("")
+        self.file_name_label.setStyleSheet("background-color: white; font-size: 12px;")
+
+        image_row = QHBoxLayout()
+        image_row.setAlignment(Qt.AlignLeft)
+        image_row.setSpacing(10)
+
+        self.thumbnails_container = QWidget()
+        self.thumbnails_container.setStyleSheet("background-color: white;")
+        self.thumbnails_layout = QHBoxLayout(self.thumbnails_container)
+        self.thumbnails_layout.setContentsMargins(0, 0, 0, 0)
+        self.thumbnails_layout.setSpacing(10)
+        self.thumbnails_layout.setAlignment(Qt.AlignLeft)
 
         # Clear button
-        clear_layout = QHBoxLayout()
         self.clear_button = QPushButton("Clear")
         self.clear_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.clear_button.setStyleSheet(button_style)
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.clicked.connect(self.clear_selection)
-        clear_layout.addWidget(self.clear_button)
-        clear_layout.addStretch()
+
+        image_row.addWidget(self.thumbnails_container)
+        image_row.addSpacing(20)
+        image_row.addWidget(self.clear_button, alignment=Qt.AlignBottom)
+        image_row.addStretch()
+
+        preview_container_layout.addWidget(self.file_name_label)
+        preview_container_layout.addLayout(image_row)
 
         # Step 2
         step2_label = QLabel("Step 2")
@@ -173,13 +199,12 @@ class MainWindow(QMainWindow):
         left_column.addWidget(step1_desc)
         left_column.addLayout(buttons_layout)
         left_column.addWidget(self.preview_label)
-        left_column.addWidget(self.preview_area, 1)  # 1 = stretch factor, full stretch
-        left_column.addLayout(clear_layout)
+        left_column.addWidget(self.preview_container)
         left_column.addSpacing(20)
         left_column.addWidget(step2_label)
         left_column.addWidget(step2_desc)
         left_column.addLayout(predict_layout)
-        left_column.addSpacing(20)
+        left_column.addStretch()
         left_column.addLayout(disclaimer_layout)
 
         # Right column inside the card
@@ -232,21 +257,64 @@ class MainWindow(QMainWindow):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
 
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Open File", pictures_path, "JPG files (*.jpg)"
+            self, "Open File", pictures_path, "JPG files (*.jpg *.jpeg)"
         )
 
         if filename:
-            print(f"{filename} loaded.")
+            self.selected_file = filename
+            self.selected_files = []
+
+            self.preview_label.setVisible(False)
+            self.preview_container.setVisible(True)
+
+            file_name = os.path.basename(filename)
+            self.file_name_label.setText(f"Selected: {file_name}")
+
+            self.clear_thumbnails()
+            self.add_thumbnail(filename)
+
             self.predict_enabled = True
             self.predict_button.setEnabled(self.predict_enabled)
+            print(f"{filename} loaded.")
 
     def open_directory(self):
         dirname = QFileDialog.getExistingDirectory(self, "Select Folder")
 
-        if dirname:
-            self.dir_button.setText(dirname)
-            self.predict_enabled = True
-            self.predict_button.setEnabled(self.predict_enabled)
+        if not dirname:
+            return
+
+        jpg_files = []
+        if os.path.exists(dirname) and os.path.isdir(dirname):
+            for filename in os.listdir(dirname):
+                if filename.lower().endswith((".jpg", ".jpeg")):
+                    filepath = os.path.join(dirname, filename)
+                    if os.path.isfile(filepath):
+                        jpg_files.append(filepath)
+
+            if jpg_files:
+                self.selected_file = None
+                self.selected_files = jpg_files
+                self.selected_directory = dirname
+
+                self.preview_label.setVisible(False)
+                self.preview_container.setVisible(True)
+
+                self.file_name_label.setText(
+                    f"Selected {len(jpg_files)} images from {os.path.basename(dirname)}"
+                )
+
+                self.clear_thumbnails()
+                self.show_directory_preview(jpg_files)
+
+                self.predict_enabled = True
+                self.predict_button.setEnabled(self.predict_enabled)
+            else:
+                self.file_name_label.setText(
+                    f"No .jpg files found in {os.path.basename(dirname)}"
+                )
+                self.predict_enabled = False
+                self.predict_button.setEnabled(self.predict_enabled)
+                self.clear_thumbnails()
 
     def predict(self):
         self.predict_button.setText("Thinking...")
@@ -259,13 +327,109 @@ class MainWindow(QMainWindow):
         else:
             self.theme_button.setText("Light")
 
+    def show_image_preview(self, filepath):
+        pixmap = QPixmap(filepath)
+
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(
+                self.image_preview.width(),
+                self.image_preview.height(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            )
+            self.image_preview.setPixmap(scaled)
+
     def clear_selection(self):
         # Clear chosen files
+        self.selected_file = None
         self.selected_files = []
-        self.preview_label.setText("Preview of selected image(s) will appear below")
+        self.selected_directory = None
+
+        self.preview_label.setVisible(True)
+        self.preview_container.setVisible(False)
+
+        self.file_name_label.setText("")
+        self.clear_thumbnails()
+
         self.predict_enabled = False
         self.predict_button.setEnabled(self.predict_enabled)
         print("Selection cleared.")
+
+    def get_preview_size(self):
+        window_height = self.height()
+        preview_size = int(window_height * 0.15)
+        return max(80, min(preview_size, 150))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.update_thumbnails_size()
+
+    def update_thumbnails_size(self):
+        preview_size = self.get_preview_size()
+
+        for i in range(self.thumbnails_layout.count()):
+            widget = self.thumbnails_layout.itemAt(i).widget()
+            if widget:
+                widget.setFixedSize(preview_size, preview_size)
+
+                # If filepath present, reload
+                filepath = widget.property("filepath")
+                if filepath:
+                    pixmap = QPixmap(filepath)
+                    if not pixmap.isNull():
+                        scaled = pixmap.scaled(
+                            preview_size,
+                            preview_size,
+                            Qt.KeepAspectRatio,
+                            Qt.SmoothTransformation,
+                        )
+                        widget.setPixmap(scaled)
+
+    def show_directory_preview(self, filepaths, number_of_previews=3):
+        for filepath in filepaths[:number_of_previews]:
+            self.add_thumbnail(filepath)
+
+        if len(filepaths) > number_of_previews:
+            more_label = QLabel(f"+{len(filepaths) - number_of_previews}")
+            more_label.setStyleSheet(
+                """
+                background-color: rgba(148, 211, 255, .3);
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: bold;
+            """
+            )
+            more_label.setAlignment(Qt.AlignCenter)
+            more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
+            more_label.setObjectName("more_label")
+            self.thumbnails_layout.addWidget(more_label)
+
+    def add_thumbnail(self, filepath):
+        thumbnail = QLabel()
+        thumbnail.setStyleSheet("background-color: white;")
+        thumbnail.setAlignment(Qt.AlignCenter)
+        thumbnail.setObjectName("thumbnail")
+
+        preview_size = self.get_preview_size()
+        thumbnail.setFixedSize(preview_size, preview_size)
+
+        pixmap = QPixmap(filepath)
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(
+                preview_size, preview_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+            thumbnail.setPixmap(scaled)
+
+        # Save filepath as a property of the thumbnail for refresh overhead
+        thumbnail.setProperty("filepath", filepath)
+
+        self.thumbnails_layout.addWidget(thumbnail)
+
+    def clear_thumbnails(self):
+        while self.thumbnails_layout.count():
+            item = self.thumbnails_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
 
 app = QApplication([])
