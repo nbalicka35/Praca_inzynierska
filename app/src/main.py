@@ -1,10 +1,24 @@
 import os
 import sys
 
+# Project directories
+current_dir = os.path.dirname(os.path.abspath(__file__))  # app/src
+app_dir = os.path.dirname(current_dir)  # app
+project_dir = os.path.dirname(app_dir)  # Praca_inzynierska
+utils_dir = os.path.join(app_dir, "utils")
+
+# checkpoint's dir
+CHECKPOINT_PATH = os.path.join(project_dir, "config", "resnet34.pth")
+
+sys.path.insert(0, utils_dir)
+
+# Import PyTorch (przed PyQt5)
+from BrainTumorClassifier import BrainTumorClassifier
 
 # Ustaw ścieżkę do pluginów Qt przed importem PyQt5 (przypadek dla środowiska wirtualnego)
 pyqt_path = os.path.join(sys.prefix, "Lib", "site-packages", "PyQt5", "Qt5", "plugins")
 os.environ["QT_PLUGIN_PATH"] = pyqt_path
+
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -17,6 +31,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QComboBox,
     QSizePolicy,
+    QScrollArea,
+    QProgressBar,
 )
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
 from PyQt5.QtGui import QPixmap
@@ -38,6 +54,7 @@ class MainWindow(QMainWindow):
         self.selected_files = []
         self.selected_directory = None
         self.predict_enabled = False
+        self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
@@ -220,17 +237,43 @@ class MainWindow(QMainWindow):
         step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Result(s) panel
-        self.results_card = QWidget()
+        self.results_card = QScrollArea()
         self.results_card.setObjectName("results_card")
+        self.results_card.setWidgetResizable(True)
+        self.results_card.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.results_card.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.results_card.setStyleSheet(
             """
             #results_card {
                 background-color: rgba(148, 211, 255, .2);
                 border-radius: 10px;
+                border: none;
             }
-            """
+            QScrollBar:vertical {
+                background: rgba(148, 211, 255, .1);
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(148, 211, 255, .5);
+                border-radius: 5px;
+                min-height: 20px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """
         )
         self.results_card.setMinimumHeight(300)
+
+        self.results_container = QWidget()
+        self.results_container.setStyleSheet("background-color: transparent;")
+        self.results_layout = QVBoxLayout(self.results_container)
+        self.results_layout.setContentsMargins(15, 15, 15, 15)
+        self.results_layout.setSpacing(10)
+        self.results_layout.setAlignment(Qt.AlignTop)
+
+        self.results_card.setWidget(self.results_container)
 
         right_column.addWidget(step3_label)
         right_column.addWidget(step3_desc)
@@ -331,8 +374,65 @@ class MainWindow(QMainWindow):
             self.clear_thumbnails()
 
     def predict(self):
+        """
+        Runs prediction for uploaded data.
+        """
+        if not self.predict_enabled:
+            return
+
         self.predict_button.setText("Thinking...")
         self.clear_button.setEnabled(False)
+
+        # Refresh app before long processing operation
+        QApplication.processEvents()
+        print(f"selected_file: {self.selected_file}")
+        print(f"selected_files: {self.selected_files}")
+        try:
+            if self.selected_file:
+                res = self.classifier.predict(self.selected_file)
+                self.show_single_res(res)
+
+            elif self.selected_files:
+                res = self.classifier.predict_batch(self.selected_files)
+                self.show_batch_res(res)
+
+        except Exception as e:
+            print(f"Prediction error: {e}")
+
+        finally:
+            self.predict_button.setText("Predict")
+            self.predict_button.setEnabled(True)
+            self.clear_button.setEnabled(True)
+
+    def show_single_res(self, res):
+        """
+        Display prediction for one image.
+        """
+        self.clear_results()
+
+        card = self.create_res_card(
+            filename=os.path.basename(self.selected_file),
+            pred=res["class_name"],
+            confidence=res["confidence"],
+        )
+        self.results_layout.addWidget(card)
+        self.results_layout.addStretch()
+
+    def show_batch_res(self, res):
+        """
+        Display prediction for many images.
+        """
+        self.clear_results()
+
+        for result in res:
+            card = self.create_res_card(
+                filename=os.path.basename(result["filepath"]),
+                pred=result["class_name"],
+                confidence=result["confidence"],
+            )
+            self.results_layout.addWidget(card)
+
+        self.results_layout.addStretch()
 
     def change_theme(self):
         if self.theme_button.isChecked():
@@ -367,7 +467,9 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+
         self.update_thumbnails_size()
+        self.update_confidence_bar_visibility()
 
     def update_thumbnails_size(self):
         preview_size = self.get_preview_size()
@@ -435,6 +537,108 @@ class MainWindow(QMainWindow):
             item = self.thumbnails_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
+
+        self.clear_results()
+
+    def create_res_card(self, filename, pred, confidence):
+        """
+        Create colorful result card for the pred.
+        """
+        colors = {
+            "glioma_tumor": "#DA5F62",
+            "meningioma_tumor": "#F0B880",
+            "no_tumor": "#93F080",
+            "pituitary_tumor": "#F0F47A",
+        }
+
+        card_color = colors[pred]
+
+        card = QWidget()
+        card.setAttribute(Qt.WA_StyledBackground, True)
+        card.setStyleSheet(
+            f"""
+            QWidget {{
+                background-color: {card_color};
+                border-radius: 15px;
+                font-size: 14px;
+            }}
+            """
+        )
+        card.setFixedHeight(50)
+
+        layout = QHBoxLayout(card)
+        layout.setContentsMargins(15, 5, 15, 5)
+        layout.setSpacing(20)
+
+        name_label = QLabel(filename)
+        name_label.setStyleSheet(f"background-color: transparent; border: none;")
+        name_label.setMinimumWidth(120)
+        name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        class_label = QLabel(pred.replace("_", " ").title())
+        class_label.setStyleSheet(
+            f"background-color: transparent; border: none; font-weight: bold;"
+        )
+        class_label.setMinimumWidth(150)
+        class_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        # Confidence bar
+        confidence_bar = QProgressBar()
+        confidence_bar.setFixedSize(120, 15)
+        confidence_bar.setMinimum(0)
+        confidence_bar.setMaximum(100)
+        confidence_bar.setValue(int(confidence * 100))
+        confidence_bar.setTextVisible(False)
+        confidence_bar.setStyleSheet(
+            """
+            QProgressBar {
+                background-color: #D8D8D8;
+                border-radius: 2px;
+                border: none;
+            }
+            QProgressBar::chunk {
+                background-color: #94D3FF;
+                border-radius: 2px;
+            }
+        """
+        )
+        confidence_bar.setVisible(self.width() >= 1400)
+
+        conf_label = QLabel(f"{confidence*100:.2f}% confidence")
+        conf_label.setStyleSheet(f"background-color: transparent; border: none;")
+        conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        layout.addWidget(name_label)
+        layout.addWidget(class_label)
+        layout.addStretch()
+        layout.addWidget(confidence_bar)
+        layout.addWidget(conf_label)
+
+        card.confidence_bar = confidence_bar
+
+        return card
+
+    def update_confidence_bar_visibility(self):
+        show_bars = self.width() >= 1400
+
+        for i in range(self.results_layout.count()):
+            item = self.results_layout.itemAt(i)
+            if item and item.widget():
+                card = item.widget()
+                # Check if card has confidence attribute
+                if hasattr(card, "confidence_bar"):
+                    card.confidence_bar.setVisible(show_bars)
+
+    def clear_results(self):
+        """
+        Clears results card.
+        """
+        while self.results_layout.count():
+            item = self.results_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.spacerItem():
+                pass
 
 
 app = QApplication([])

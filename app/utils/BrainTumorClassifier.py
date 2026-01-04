@@ -1,9 +1,10 @@
 import torch
 from torchvision import transforms
 import cv2
+from PIL import Image
 
-from app.utils.HistogramEqualization import HistogramEqualization
-from app.utils.ResNet34Model import ResNet34Model
+from HistogramEqualization import HistogramEqualization
+from ResNet34Model import ResNet34Model
 
 
 class BrainTumorClassifier:
@@ -41,12 +42,10 @@ class BrainTumorClassifier:
         """
         Classifies single picture.
         """
-        img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = Image.open(img_path).convert("RGB")
 
         img_trans = self.transform(img)
         img_tensor = img_trans.unsqueeze(0).to(self.device)
-
         with torch.no_grad():
             out = self.model(img_tensor)
             probs = torch.softmax(out, dim=1)
