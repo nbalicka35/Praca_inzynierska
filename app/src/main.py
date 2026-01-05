@@ -14,6 +14,7 @@ sys.path.insert(0, utils_dir)
 
 # Import PyTorch (przed PyQt5)
 from BrainTumorClassifier import BrainTumorClassifier
+from GradCAM import generate_gradcam
 
 # Ustaw ścieżkę do pluginów Qt przed importem PyQt5 (przypadek dla środowiska wirtualnego)
 pyqt_path = os.path.join(sys.prefix, "Lib", "site-packages", "PyQt5", "Qt5", "plugins")
@@ -33,9 +34,13 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QScrollArea,
     QProgressBar,
+    QDialog,
 )
+import numpy as np
+import cv2
+from PIL import Image
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QImage
 from TopBar import TopBar
 
 
@@ -412,6 +417,7 @@ class MainWindow(QMainWindow):
 
         card = self.create_res_card(
             filename=os.path.basename(self.selected_file),
+            filepath=self.selected_file,
             pred=res["class_name"],
             confidence=res["confidence"],
         )
@@ -427,6 +433,7 @@ class MainWindow(QMainWindow):
         for result in res:
             card = self.create_res_card(
                 filename=os.path.basename(result["filepath"]),
+                filepath=result["filepath"],
                 pred=result["class_name"],
                 confidence=result["confidence"],
             )
@@ -540,7 +547,7 @@ class MainWindow(QMainWindow):
 
         self.clear_results()
 
-    def create_res_card(self, filename, pred, confidence):
+    def create_res_card(self, filepath, filename, pred, confidence):
         """
         Create colorful result card for the pred.
         """
@@ -567,23 +574,23 @@ class MainWindow(QMainWindow):
         card.setFixedHeight(50)
 
         layout = QHBoxLayout(card)
-        layout.setContentsMargins(15, 5, 15, 5)
-        layout.setSpacing(20)
+        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setSpacing(10)
 
         name_label = QLabel(filename)
         name_label.setStyleSheet(f"background-color: transparent; border: none;")
-        name_label.setMinimumWidth(120)
+        name_label.setFixedWidth(120)
         name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         class_label = QLabel(pred.replace("_", " ").title())
         class_label.setStyleSheet(
             f"background-color: transparent; border: none; font-weight: bold;"
         )
-        class_label.setMinimumWidth(150)
+        class_label.setFixedWidth(140)
         class_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Confidence bar
-        confidence_bar = QProgressBar()
+        confidence_bar = QProgressBar(card)
         confidence_bar.setFixedSize(120, 15)
         confidence_bar.setMinimum(0)
         confidence_bar.setMaximum(100)
@@ -606,13 +613,36 @@ class MainWindow(QMainWindow):
 
         conf_label = QLabel(f"{confidence*100:.2f}% confidence")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
+        conf_label.setFixedWidth(130)
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        details_button = QPushButton("🔍")
+        details_button.setFixedSize(30, 30)
+        details_button.setCursor(Qt.PointingHandCursor)
+        details_button.setToolTip("Show GradCAM visualization")
+        details_button.setStyleSheet(
+            """
+            QPushButton {
+                background: transparent;
+                border: none;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
+            }
+        """
+        )
+        details_button.clicked.connect(
+            lambda checked, f=filepath: self.show_gradcam_window(f)
+        )
 
         layout.addWidget(name_label)
         layout.addWidget(class_label)
         layout.addStretch()
         layout.addWidget(confidence_bar)
         layout.addWidget(conf_label)
+        layout.addWidget(details_button)
 
         card.confidence_bar = confidence_bar
 
@@ -628,6 +658,113 @@ class MainWindow(QMainWindow):
                 # Check if card has confidence attribute
                 if hasattr(card, "confidence_bar"):
                     card.confidence_bar.setVisible(show_bars)
+
+    def show_gradcam_window(self, filepath):
+        self.setCursor(Qt.WaitCursor)
+
+        try:
+            img_pil = Image.open(filepath).convert("RGB")
+            if img_pil is None:
+                print(f"Could not load the image: {filepath}")
+                self.setCursor(Qt.ArrowCursor)
+                return
+
+            img_resized = img_pil.resize(self.classifier.image_size)
+            img_np = np.array(img_resized)
+
+            img_trans = self.classifier.transform(img_pil)
+            img_tensor = img_trans.unsqueeze(0).to(self.classifier.device)
+
+            res = generate_gradcam(
+                model=self.classifier.model,
+                img_tensor=img_tensor,
+                original_img=img_np,
+                device=self.classifier.device,
+            )
+
+            original_pixmap = self.rgb_to_pixmap(img_np)
+            heatmap_pixmap = self.rgb_to_pixmap(
+                cv2.cvtColor(res["heatmap"], cv2.COLOR_BGR2RGB)
+            )
+            superimposed_pixmap = self.rgb_to_pixmap(
+                cv2.cvtColor(res["superimposed"], cv2.COLOR_BGR2RGB)
+            )
+
+            gradcam_dialog = QDialog(self)
+            gradcam_dialog.setWindowTitle(f"GradCAM for {os.path.basename(filepath)}")
+            gradcam_dialog.setMinimumSize(600, 300)
+
+            gradcam_layout = QVBoxLayout(gradcam_dialog)
+            images_layout = QHBoxLayout()
+
+            original_container = QVBoxLayout()
+            original_label = QLabel(f"Original {os.path.basename(filepath)}")
+            original_label.setAlignment(Qt.AlignCenter)
+            original_label.setStyleSheet("font-weight: bold;")
+            original_img = QLabel()
+            original_img.setPixmap(
+                original_pixmap.scaled(
+                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
+            original_img.setAlignment(Qt.AlignCenter)
+            original_container.addWidget(original_label)
+            original_container.addWidget(original_img)
+
+            heatmap_container = QVBoxLayout()
+            heatmap_label = QLabel("GradCAM Heatmap")
+            heatmap_label.setAlignment(Qt.AlignCenter)
+            heatmap_label.setStyleSheet("font-weight: bold;")
+            heatmap_img = QLabel()
+            heatmap_img.setPixmap(
+                heatmap_pixmap.scaled(
+                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
+            heatmap_img.setAlignment(Qt.AlignCenter)
+            heatmap_container.addWidget(heatmap_label)
+            heatmap_container.addWidget(heatmap_img)
+
+            superimposed_container = QVBoxLayout()
+            superimposed_label = QLabel("Overlay")
+            superimposed_label.setAlignment(Qt.AlignCenter)
+            superimposed_label.setStyleSheet("font-weight: bold;")
+            superimposed_img = QLabel()
+            superimposed_img.setPixmap(
+                superimposed_pixmap.scaled(
+                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
+            superimposed_img.setAlignment(Qt.AlignCenter)
+            superimposed_container.addWidget(superimposed_label)
+            superimposed_container.addWidget(superimposed_img)
+
+            images_layout.addLayout(original_container)
+            images_layout.addLayout(heatmap_container)
+            images_layout.addLayout(superimposed_container)
+
+            info_label = QLabel(
+                f"Prediction: {self.classifier.classes[res["class_index"]].replace("_", " ").title()} ({res["confidence"]*100:.2f}%)"
+            )
+            info_label.setAlignment(Qt.AlignCenter)
+            info_label.setStyleSheet("font-size: 16px; margin-top: 10px;")
+
+            gradcam_layout.addLayout(images_layout)
+            gradcam_layout.addWidget(info_label)
+
+            self.setCursor(Qt.ArrowCursor)
+            gradcam_dialog.exec()
+
+        except Exception as e:
+            print(f"GradCAM error: {e}")
+            self.setCursor(Qt.ArrowCursor)
+
+    def rgb_to_pixmap(self, rgb_img):
+        height, width, channel = rgb_img.shape
+        bytes_per_line = width * channel
+
+        qimg = QImage(rgb_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        return QPixmap.fromImage(qimg.copy())
 
     def clear_results(self):
         """
