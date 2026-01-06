@@ -19,6 +19,7 @@ class ItemDelegate(QStyledItemDelegate):
 
 class TopBar(QWidget):
     theme_changed = pyqtSignal(str)
+    language_changed = pyqtSignal(str)
 
     def __init__(self, lang="EN", theme="Light"):
         super().__init__()
@@ -39,6 +40,7 @@ class TopBar(QWidget):
         self.combobox_lang.setMinimumSize(40, 30)
         self.combobox_lang.setCursor(Qt.PointingHandCursor)
         self.combobox_lang.view().setCursor(Qt.PointingHandCursor)
+        self.combobox_lang.currentTextChanged.connect(self.change_lang)
 
         self.light_theme = QPushButton("Light 🔆")
         self.light_theme.setCursor(Qt.PointingHandCursor)
@@ -180,3 +182,13 @@ class TopBar(QWidget):
             }
             """
             )
+
+    def change_lang(self, current_item):
+        if current_item == "EN":
+            self.dark_theme.setText("🌙 Dark")
+            self.light_theme.setText("Light 🔆")
+        elif current_item == "PL":
+            self.dark_theme.setText("🌙 Ciemny")
+            self.light_theme.setText("Jasny 🔆")
+
+        self.language_changed.emit(current_item)

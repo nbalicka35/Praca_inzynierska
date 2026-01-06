@@ -43,8 +43,10 @@ from PIL import Image
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
 from PyQt5.QtGui import QPixmap, QImage
 from TopBar import TopBar
+from Translator import Translator
 
 
+# TODO: split the file into smaller files
 class StepLabel(QLabel):
     def __init__(self, step):
         super().__init__()
@@ -76,6 +78,8 @@ class MainWindow(QMainWindow):
         # Top bar
         self.top_bar = TopBar()
         self.top_bar.setContentsMargins(0, 0, 0, 50)
+        self.top_bar.language_changed.connect()  # TODO: provide the method to handle lang change
+        self.top_bar.theme_changed.connect()  # TODO: provide the method to handle theme change
 
         # White card
         self.card = QWidget()
@@ -114,12 +118,12 @@ class MainWindow(QMainWindow):
         BUTTON_HEIGHT = 45
 
         # Step 1
-        step1_label = QLabel("Step 1")
-        step1_label.setStyleSheet(
+        self.step1_label = QLabel("Step 1")
+        self.step1_label.setStyleSheet(
             "font-weight: bold; font-size: 18px; background-color:white;"
         )
-        step1_desc = QLabel("Select .jpg file or directory")
-        step1_desc.setStyleSheet("font-size: 16px; background-color:white;")
+        self.step1_desc = QLabel("Select .jpg file or directory")
+        self.step1_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Choice buttons
         buttons_layout = QHBoxLayout()
@@ -127,13 +131,13 @@ class MainWindow(QMainWindow):
         self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.file_button.setStyleSheet(button_style)
         self.file_button.setCursor(Qt.PointingHandCursor)
-        self.file_button.clicked.connect(self.open_file)
+        self.file_button.clicked.connect(self.open_file("EN"))
 
         self.dir_button = QPushButton("Choose directory")
         self.dir_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.dir_button.setStyleSheet(button_style)
         self.dir_button.setCursor(Qt.PointingHandCursor)
-        self.dir_button.clicked.connect(self.open_directory)
+        self.dir_button.clicked.connect(self.open_directory("EN"))
 
         buttons_layout.addWidget(self.file_button)
         buttons_layout.addWidget(self.dir_button)
@@ -181,12 +185,12 @@ class MainWindow(QMainWindow):
         preview_container_layout.addLayout(image_row)
 
         # Step 2
-        step2_label = QLabel("Step 2")
-        step2_label.setStyleSheet(
+        self.step2_label = QLabel("Step 2")
+        self.step2_label.setStyleSheet(
             "font-weight: bold; font-size: 18px; background-color:white;"
         )
-        step2_desc = QLabel("Examine photo(s)")
-        step2_desc.setStyleSheet("font-size: 16px; background-color:white;")
+        self.step2_desc = QLabel("Examine photo(s)")
+        self.step2_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Predict button
         predict_layout = QHBoxLayout()
@@ -208,25 +212,25 @@ class MainWindow(QMainWindow):
         disclaimer_icon.setStyleSheet("background-color: white;")
         disclaimer_icon.setAlignment(Qt.AlignTop)
 
-        disclaimer_text = QLabel(
+        self.disclaimer_text = QLabel(
             "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
             "Always examine patients and make a decision based on the knowledge of yours."
         )
-        disclaimer_text.setStyleSheet("background-color: white;")
-        disclaimer_text.setAlignment(Qt.AlignLeft)
+        self.disclaimer_text.setStyleSheet("background-color: white;")
+        self.disclaimer_text.setAlignment(Qt.AlignLeft)
 
         disclaimer_layout.addWidget(disclaimer_icon)
-        disclaimer_layout.addWidget(disclaimer_text)
+        disclaimer_layout.addWidget(self.disclaimer_text)
         disclaimer_layout.addStretch()
 
-        left_column.addWidget(step1_label)
-        left_column.addWidget(step1_desc)
+        left_column.addWidget(self.step1_label)
+        left_column.addWidget(self.step1_desc)
         left_column.addLayout(buttons_layout)
         left_column.addWidget(self.preview_label)
         left_column.addWidget(self.preview_container)
         left_column.addSpacing(20)
-        left_column.addWidget(step2_label)
-        left_column.addWidget(step2_desc)
+        left_column.addWidget(self.step2_label)
+        left_column.addWidget(self.step2_desc)
         left_column.addLayout(predict_layout)
         left_column.addStretch()
         left_column.addLayout(disclaimer_layout)
@@ -235,12 +239,12 @@ class MainWindow(QMainWindow):
         right_column = QVBoxLayout()
         right_column.setAlignment(Qt.AlignTop)
 
-        step3_label = QLabel("Step 3")
-        step3_label.setStyleSheet(
+        self.step3_label = QLabel("Step 3")
+        self.step3_label.setStyleSheet(
             "font-weight: bold; font-size: 18px; background-color: white;"
         )
-        step3_desc = QLabel("Check the result for the photo(s) below")
-        step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
+        self.step3_desc = QLabel("Check the result for the photo(s) below")
+        self.step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Result(s) panel
         self.results_card = QScrollArea()
@@ -281,8 +285,8 @@ class MainWindow(QMainWindow):
 
         self.results_card.setWidget(self.results_container)
 
-        right_column.addWidget(step3_label)
-        right_column.addWidget(step3_desc)
+        right_column.addWidget(self.step3_label)
+        right_column.addWidget(self.step3_desc)
         right_column.addWidget(self.results_card, 1)
 
         # Add columns to the card
@@ -303,11 +307,12 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-    def open_file(self):
+    def open_file(self, lang):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
+        window_title = "Open File" if lang == "EN" else "Wybierz plik"
 
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Open File", pictures_path, "JPG files (*.jpg *.jpeg)"
+            self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
         )
 
         if filename:
@@ -329,8 +334,9 @@ class MainWindow(QMainWindow):
             self.clear_button.setEnabled(True)
             print(f"{filename} loaded.")
 
-    def open_directory(self):
-        dirname = QFileDialog.getExistingDirectory(self, "Select Folder")
+    def open_directory(self, lang):
+        window_title = "Select Folder" if lang == "EN" else "Wybierz folder"
+        dirname = QFileDialog.getExistingDirectory(self, window_title)
 
         if not dirname:
             return
@@ -355,6 +361,7 @@ class MainWindow(QMainWindow):
             self.preview_label.setVisible(False)
             self.preview_container.setVisible(True)
 
+            # TODO: translate
             self.file_name_label.setText(
                 f"Selected {len(jpg_files)} images from {os.path.basename(dirname)}"
             )
@@ -371,6 +378,7 @@ class MainWindow(QMainWindow):
             self.selected_files = []
             self.selected_directory = None
 
+            # TODO: Translate
             self.file_name_label.setText(
                 f"No .jpg files found in {os.path.basename(dirname)}"
             )
@@ -403,10 +411,12 @@ class MainWindow(QMainWindow):
                 self.show_batch_res(res)
 
         except Exception as e:
+            # TODO: translate
             ErrMsgDialog(parent=self, title="Prediction failed", msg=e)
             print(f"Prediction error: {e}")
 
         finally:
+            # TODO: translate
             self.predict_button.setText("Predict")
             self.predict_button.setEnabled(True)
             self.clear_button.setEnabled(True)
@@ -444,6 +454,7 @@ class MainWindow(QMainWindow):
         self.results_layout.addStretch()
 
     def change_theme(self):
+        # TODO: translate
         if self.theme_button.isChecked():
             self.theme_button.setText("Dark")
 
@@ -613,6 +624,7 @@ class MainWindow(QMainWindow):
         )
         confidence_bar.setVisible(self.width() >= 1400)
 
+        # TODO: translate
         conf_label = QLabel(f"{confidence*100:.2f}% confidence")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
         conf_label.setFixedWidth(130)
@@ -667,6 +679,12 @@ class MainWindow(QMainWindow):
         try:
             img_pil = Image.open(filepath).convert("RGB")
             if img_pil is None:
+                # TODO: translate
+                ErrMsgDialog(
+                    parent=self,
+                    title="Image loading failed",
+                    msg=lambda f=filepath: f"Could not load the image: {f}",
+                )
                 print(f"Could not load the image: {filepath}")
                 self.setCursor(Qt.ArrowCursor)
                 return
@@ -693,6 +711,7 @@ class MainWindow(QMainWindow):
             )
 
             gradcam_dialog = QDialog(self)
+            # TODO: translate
             gradcam_dialog.setWindowTitle(f"GradCAM for {os.path.basename(filepath)}")
             gradcam_dialog.setMinimumSize(600, 300)
 
@@ -700,6 +719,7 @@ class MainWindow(QMainWindow):
             images_layout = QHBoxLayout()
 
             original_container = QVBoxLayout()
+            # TODO: translate
             original_label = QLabel(f"Original {os.path.basename(filepath)}")
             original_label.setAlignment(Qt.AlignCenter)
             original_label.setStyleSheet("font-weight: bold;")
@@ -714,6 +734,7 @@ class MainWindow(QMainWindow):
             original_container.addWidget(original_img)
 
             heatmap_container = QVBoxLayout()
+            # TODO: translate
             heatmap_label = QLabel("GradCAM Heatmap")
             heatmap_label.setAlignment(Qt.AlignCenter)
             heatmap_label.setStyleSheet("font-weight: bold;")
@@ -728,6 +749,7 @@ class MainWindow(QMainWindow):
             heatmap_container.addWidget(heatmap_img)
 
             superimposed_container = QVBoxLayout()
+            # TODO: translate
             superimposed_label = QLabel("Overlay")
             superimposed_label.setAlignment(Qt.AlignCenter)
             superimposed_label.setStyleSheet("font-weight: bold;")
@@ -744,7 +766,7 @@ class MainWindow(QMainWindow):
             images_layout.addLayout(original_container)
             images_layout.addLayout(heatmap_container)
             images_layout.addLayout(superimposed_container)
-
+            # TODO: translate
             info_label = QLabel(
                 f"Prediction: {self.classifier.classes[res["class_index"]].replace("_", " ").title()} ({res["confidence"]*100:.2f}%)"
             )
@@ -758,6 +780,7 @@ class MainWindow(QMainWindow):
             gradcam_dialog.exec()
 
         except Exception as e:
+            # TODO: translate
             ErrMsgDialog(parent=self, title="Visualization error has occured.", msg=e)
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
