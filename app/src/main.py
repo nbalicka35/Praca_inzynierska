@@ -62,6 +62,7 @@ class MainWindow(QMainWindow):
         self.selected_files = []
         self.selected_directory = None
         self.predict_enabled = False
+        self.current_language = "EN"
         self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
 
         # Window properties
@@ -78,8 +79,8 @@ class MainWindow(QMainWindow):
         # Top bar
         self.top_bar = TopBar()
         self.top_bar.setContentsMargins(0, 0, 0, 50)
-        self.top_bar.language_changed.connect()  # TODO: provide the method to handle lang change
-        self.top_bar.theme_changed.connect()  # TODO: provide the method to handle theme change
+        self.top_bar.language_changed.connect(self.change_language)
+        self.top_bar.theme_changed.connect(self.change_theme)
 
         # White card
         self.card = QWidget()
@@ -131,13 +132,13 @@ class MainWindow(QMainWindow):
         self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.file_button.setStyleSheet(button_style)
         self.file_button.setCursor(Qt.PointingHandCursor)
-        self.file_button.clicked.connect(self.open_file("EN"))
+        self.file_button.clicked.connect(self.open_file)
 
         self.dir_button = QPushButton("Choose directory")
         self.dir_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.dir_button.setStyleSheet(button_style)
         self.dir_button.setCursor(Qt.PointingHandCursor)
-        self.dir_button.clicked.connect(self.open_directory("EN"))
+        self.dir_button.clicked.connect(self.open_directory)
 
         buttons_layout.addWidget(self.file_button)
         buttons_layout.addWidget(self.dir_button)
@@ -307,9 +308,9 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-    def open_file(self, lang):
+    def open_file(self):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
-        window_title = "Open File" if lang == "EN" else "Wybierz plik"
+        window_title = "Open File" if self.current_language == "EN" else "Wybierz plik"
 
         filename, _ = QFileDialog.getOpenFileName(
             self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
@@ -334,8 +335,10 @@ class MainWindow(QMainWindow):
             self.clear_button.setEnabled(True)
             print(f"{filename} loaded.")
 
-    def open_directory(self, lang):
-        window_title = "Select Folder" if lang == "EN" else "Wybierz folder"
+    def open_directory(self):
+        window_title = (
+            "Select Folder" if self.current_language == "EN" else "Wybierz folder"
+        )
         dirname = QFileDialog.getExistingDirectory(self, window_title)
 
         if not dirname:
@@ -791,6 +794,11 @@ class MainWindow(QMainWindow):
 
         qimg = QImage(rgb_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
         return QPixmap.fromImage(qimg.copy())
+
+    def change_language(self, language):
+        print(f"change_language called with: {language}")
+        self.current_language = language
+        Translator(window=self, language=self.current_language)
 
     def clear_results(self):
         """

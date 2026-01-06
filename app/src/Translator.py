@@ -9,14 +9,18 @@ class Translator:
     def __init__(self, language, window):
         self.current_lang = language
         self.current_window = window
+        print(f"Translator init with language: {language}")
 
         if self.current_lang == "PL":
-            self.set_polish
+            print("Calling set_polish()")
+            self.set_polish()
 
         elif self.current_lang == "EN":
-            self.set_english
+            print("Calling set_english()")
+            self.set_english()
 
     def set_polish(self):
+        print("set_polish() executing")
         self.current_window.step1_label.setText("Krok 1")
         self.current_window.step1_desc.setText(
             "Wybierz plik .jpg lub ścieżkę z obrazami"
@@ -35,8 +39,9 @@ class Translator:
 
         self.current_window.predict_button.setText("Uruchom")
 
-        self.current_window.disclaimer_text(
-            "Neuron to oprogramowanie stworzone z myślą o wsparciu lekarzy i radiologów w diagnozowaniu guzów mózgu i może popełniać błędy.\n"
+        self.current_window.disclaimer_text.setText(
+            "Neuron to oprogramowanie stworzone z myślą o wsparciu lekarzy i radiologów w diagnozowaniu\n"
+            "guzów mózgu i może popełniać błędy.\n"
             "Zawsze poddawaj pacjentów diagnozie i podejmuj decyzje w oparciu o własną wiedzę i doświadczenie."
         )
 
@@ -46,6 +51,7 @@ class Translator:
         )
 
     def set_english(self):
+        print("set_english() executing")
         self.current_window.step1_label.setText("Step 1")
         self.current_window.step1_desc.setText("Select .jpg file or directory")
 
@@ -62,7 +68,7 @@ class Translator:
 
         self.current_window.predict_button.setText("Predict")
 
-        self.current_window.disclaimer_text(
+        self.current_window.disclaimer_text.setText(
             "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
             "Always examine patients and make a decision based on the knowledge of yours."
         )

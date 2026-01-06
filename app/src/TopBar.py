@@ -191,4 +191,5 @@ class TopBar(QWidget):
             self.dark_theme.setText("🌙 Ciemny")
             self.light_theme.setText("Jasny 🔆")
 
+        print(f"TopBar emitting: {current_item}")
         self.language_changed.emit(current_item)
