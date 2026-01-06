@@ -15,6 +15,7 @@ sys.path.insert(0, utils_dir)
 # Import PyTorch (przed PyQt5)
 from BrainTumorClassifier import BrainTumorClassifier
 from GradCAM import generate_gradcam
+import ErrMsgDialog
 
 # Ustaw ścieżkę do pluginów Qt przed importem PyQt5 (przypadek dla środowiska wirtualnego)
 pyqt_path = os.path.join(sys.prefix, "Lib", "site-packages", "PyQt5", "Qt5", "plugins")
@@ -402,6 +403,7 @@ class MainWindow(QMainWindow):
                 self.show_batch_res(res)
 
         except Exception as e:
+            ErrMsgDialog(parent=self, title="Prediction failed", msg=e)
             print(f"Prediction error: {e}")
 
         finally:
@@ -756,6 +758,7 @@ class MainWindow(QMainWindow):
             gradcam_dialog.exec()
 
         except Exception as e:
+            ErrMsgDialog(parent=self, title="Visualization error has occured.", msg=e)
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
 
