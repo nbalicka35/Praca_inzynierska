@@ -15,7 +15,7 @@ sys.path.insert(0, utils_dir)
 # Import PyTorch (przed PyQt5)
 from BrainTumorClassifier import BrainTumorClassifier
 from GradCAM import generate_gradcam
-import ErrMsgDialog
+from ErrMsgDialog import ErrMsgDialog
 
 # Ustaw ścieżkę do pluginów Qt przed importem PyQt5 (przypadek dla środowiska wirtualnego)
 pyqt_path = os.path.join(sys.prefix, "Lib", "site-packages", "PyQt5", "Qt5", "plugins")
@@ -47,13 +47,6 @@ from Translator import Translator
 
 
 # TODO: split the file into smaller files
-class StepLabel(QLabel):
-    def __init__(self, step):
-        super().__init__()
-        self.setText(f"Step {step}")
-        self.setStyleSheet("font-weight: bold;")
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -64,6 +57,43 @@ class MainWindow(QMainWindow):
         self.predict_enabled = False
         self.current_language = "EN"
         self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
+        self.last_results = None
+        self.result_type = None
+
+        self.TEXTS = {
+            "EN": {
+                "confidence": "confidence",
+                "original": "Original",
+                "heatmap": "GradCAM Heatmap",
+                "overlay": "Overlay",
+                "prediction": "Prediction",
+                "gradcam_title": "GradCAM for",
+                "selected": "Selected",
+                "selected_images": "Selected {count} images from {folder}",
+                "no_jpg": "No .jpg files found in {folder}",
+                "thinking": "Thinking...",
+                "meningioma_tumor": "Meningioma Tumor",
+                "glioma_tumor": "Glioma Tumor",
+                "pituitary_tumor": "Pituitary Tumor",
+                "no_tumor": "No Tumor"
+            },
+            "PL": {
+                "confidence": "pewności",
+                "original": "Oryginał",
+                "heatmap": "Mapa ciepła GradCAM",
+                "overlay": "Nałożenie",
+                "prediction": "Predykcja",
+                "gradcam_title": "GradCAM dla",
+                "selected": "Wybrano",
+                "selected_images": "Wybrano {count} obrazów z {folder}",
+                "no_jpg": "Brak plików .jpg w {folder}",
+                "thinking": "Myślę...",
+                "meningioma_tumor": "Oponiak",
+                "glioma_tumor": "Glejak",
+                "pituitary_tumor": "Guz Przysadki",
+                "no_tumor": "Brak guza"
+            }
+        }
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
@@ -324,7 +354,7 @@ class MainWindow(QMainWindow):
             self.preview_container.setVisible(True)
 
             file_name = os.path.basename(filename)
-            self.file_name_label.setText(f"Selected: {file_name}")
+            self.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
 
             self.clear_thumbnails()
             self.add_thumbnail(filename)
@@ -364,9 +394,8 @@ class MainWindow(QMainWindow):
             self.preview_label.setVisible(False)
             self.preview_container.setVisible(True)
 
-            # TODO: translate
             self.file_name_label.setText(
-                f"Selected {len(jpg_files)} images from {os.path.basename(dirname)}"
+                self.get_text("selected_images", count=len(jpg_files), folder=os.path.basename(dirname))
             )
 
             self.clear_thumbnails()
@@ -381,9 +410,8 @@ class MainWindow(QMainWindow):
             self.selected_files = []
             self.selected_directory = None
 
-            # TODO: Translate
             self.file_name_label.setText(
-                f"No .jpg files found in {os.path.basename(dirname)}"
+                {self.get_text("no_jpg", folder=os.path.basename(dirname))}
             )
             self.predict_enabled = False
             self.predict_button.setEnabled(self.predict_enabled)
@@ -397,7 +425,7 @@ class MainWindow(QMainWindow):
         if not self.predict_enabled:
             return
 
-        self.predict_button.setText("Thinking...")
+        self.predict_button.setText(self.get_text("thinking"))
         self.clear_button.setEnabled(False)
 
         # Refresh app before long processing operation
@@ -408,21 +436,33 @@ class MainWindow(QMainWindow):
             if self.selected_file:
                 res = self.classifier.predict(self.selected_file)
                 self.show_single_res(res)
+                self.result_type = "single"
 
             elif self.selected_files:
                 res = self.classifier.predict_batch(self.selected_files)
                 self.show_batch_res(res)
+                self.result_type = "batch"
+            self.last_results = res
 
         except Exception as e:
-            # TODO: translate
-            ErrMsgDialog(parent=self, title="Prediction failed", msg=e)
+            title = "Execution failed" if self.current_language == "EN" else "Wykonanie nie powiodło się"
+            ErrMsgDialog(parent=self, title=title, msg=str(e))
             print(f"Prediction error: {e}")
 
         finally:
-            # TODO: translate
-            self.predict_button.setText("Predict")
+            label = "Predict" if self.current_language=="EN" else "Uruchom"
+            self.predict_button.setText(label)
             self.predict_button.setEnabled(True)
             self.clear_button.setEnabled(True)
+
+    def refresh_results(self):
+        if self.last_results is None:
+            return
+        
+        if self.result_type == "single":
+            self.show_single_res(self.last_results)
+        elif self.result_type == "batch":
+            self.show_batch_res(self.last_results)
 
     def show_single_res(self, res):
         """
@@ -457,12 +497,13 @@ class MainWindow(QMainWindow):
         self.results_layout.addStretch()
 
     def change_theme(self):
-        # TODO: translate
         if self.theme_button.isChecked():
-            self.theme_button.setText("Dark")
+            theme_label = "Dark" if self.current_language == "EN" else "Ciemny"
+            self.theme_button.setText(theme_label)
 
         else:
-            self.theme_button.setText("Light")
+            theme_label = "Light" if self.current_language == "EN" else "Jasny"
+            self.theme_button.setText(theme_label)
 
     def clear_selection(self):
         # Clear chosen files
@@ -598,7 +639,7 @@ class MainWindow(QMainWindow):
         name_label.setFixedWidth(120)
         name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-        class_label = QLabel(pred.replace("_", " ").title())
+        class_label = QLabel(self.get_text(pred))
         class_label.setStyleSheet(
             f"background-color: transparent; border: none; font-weight: bold;"
         )
@@ -627,8 +668,7 @@ class MainWindow(QMainWindow):
         )
         confidence_bar.setVisible(self.width() >= 1400)
 
-        # TODO: translate
-        conf_label = QLabel(f"{confidence*100:.2f}% confidence")
+        conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("confidence")}")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
         conf_label.setFixedWidth(130)
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -636,7 +676,8 @@ class MainWindow(QMainWindow):
         details_button = QPushButton("🔍")
         details_button.setFixedSize(30, 30)
         details_button.setCursor(Qt.PointingHandCursor)
-        details_button.setToolTip("Show GradCAM visualization")
+        hint = "Show GradCAM visualization" if self.current_language=="EN" else "Pokaż mapę ciepła GradCAM"
+        details_button.setToolTip(hint)
         details_button.setStyleSheet(
             """
             QPushButton {
@@ -682,11 +723,12 @@ class MainWindow(QMainWindow):
         try:
             img_pil = Image.open(filepath).convert("RGB")
             if img_pil is None:
-                # TODO: translate
+                title = "Image loading failed" if self.current_language=="EN" else "Załadowanie obrazu nie powiodło się"
+                content = "Could not load the image" if self.current_language == "EN" else "Błąd podczas ładowania obrazu" 
                 ErrMsgDialog(
                     parent=self,
-                    title="Image loading failed",
-                    msg=lambda f=filepath: f"Could not load the image: {f}",
+                    title=title,
+                    msg=lambda f=filepath: f"{content}: {f}",
                 )
                 print(f"Could not load the image: {filepath}")
                 self.setCursor(Qt.ArrowCursor)
@@ -714,16 +756,14 @@ class MainWindow(QMainWindow):
             )
 
             gradcam_dialog = QDialog(self)
-            # TODO: translate
-            gradcam_dialog.setWindowTitle(f"GradCAM for {os.path.basename(filepath)}")
+            gradcam_dialog.setWindowTitle(f"{self.get_text("gradcam_title")} {os.path.basename(filepath)}")
             gradcam_dialog.setMinimumSize(600, 300)
 
             gradcam_layout = QVBoxLayout(gradcam_dialog)
             images_layout = QHBoxLayout()
 
             original_container = QVBoxLayout()
-            # TODO: translate
-            original_label = QLabel(f"Original {os.path.basename(filepath)}")
+            original_label = QLabel(f"{self.get_text("original")} {os.path.basename(filepath)}")
             original_label.setAlignment(Qt.AlignCenter)
             original_label.setStyleSheet("font-weight: bold;")
             original_img = QLabel()
@@ -737,8 +777,7 @@ class MainWindow(QMainWindow):
             original_container.addWidget(original_img)
 
             heatmap_container = QVBoxLayout()
-            # TODO: translate
-            heatmap_label = QLabel("GradCAM Heatmap")
+            heatmap_label = QLabel(self.get_text("heatmap"))
             heatmap_label.setAlignment(Qt.AlignCenter)
             heatmap_label.setStyleSheet("font-weight: bold;")
             heatmap_img = QLabel()
@@ -752,8 +791,7 @@ class MainWindow(QMainWindow):
             heatmap_container.addWidget(heatmap_img)
 
             superimposed_container = QVBoxLayout()
-            # TODO: translate
-            superimposed_label = QLabel("Overlay")
+            superimposed_label = QLabel(self.get_text("overlay"))
             superimposed_label.setAlignment(Qt.AlignCenter)
             superimposed_label.setStyleSheet("font-weight: bold;")
             superimposed_img = QLabel()
@@ -769,9 +807,8 @@ class MainWindow(QMainWindow):
             images_layout.addLayout(original_container)
             images_layout.addLayout(heatmap_container)
             images_layout.addLayout(superimposed_container)
-            # TODO: translate
             info_label = QLabel(
-                f"Prediction: {self.classifier.classes[res["class_index"]].replace("_", " ").title()} ({res["confidence"]*100:.2f}%)"
+                f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["confidence"]*100:.2f}%)"
             )
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setStyleSheet("font-size: 16px; margin-top: 10px;")
@@ -783,8 +820,8 @@ class MainWindow(QMainWindow):
             gradcam_dialog.exec()
 
         except Exception as e:
-            # TODO: translate
-            ErrMsgDialog(parent=self, title="Visualization error has occured.", msg=e)
+            title = "Visualization error has occured." if self.current_language == "EN" else "Wystąpił błąd wizualizacji."
+            ErrMsgDialog(parent=self, title=title, msg=str(e))
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
 
@@ -799,7 +836,15 @@ class MainWindow(QMainWindow):
         print(f"change_language called with: {language}")
         self.current_language = language
         Translator(window=self, language=self.current_language)
+        self.refresh_results()
 
+    def get_text(self, key, **kwargs):
+        text = self.TEXTS[self.current_language].get(key)
+        if kwargs:
+            text = text.format(**kwargs)
+            
+        return text
+        
     def clear_results(self):
         """
         Clears results card.
