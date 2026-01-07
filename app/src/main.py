@@ -14,6 +14,7 @@ sys.path.insert(0, utils_dir)
 
 # Import PyTorch (przed PyQt5)
 from BrainTumorClassifier import BrainTumorClassifier
+from ThemesManager import ThemesManager
 from GradCAM import generate_gradcam
 from ErrMsgDialog import ErrMsgDialog
 
@@ -59,6 +60,7 @@ class MainWindow(QMainWindow):
         self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
         self.last_results = None
         self.result_type = None
+        self.theme_manager = ThemesManager(self)
 
         self.TEXTS = {
             "EN": {
@@ -239,9 +241,9 @@ class MainWindow(QMainWindow):
         disclaimer_layout.setAlignment(Qt.AlignLeft)
         disclaimer_layout.setSpacing(5)
 
-        disclaimer_icon = QLabel("⚠️")
-        disclaimer_icon.setStyleSheet("background-color: white;")
-        disclaimer_icon.setAlignment(Qt.AlignTop)
+        self.disclaimer_icon = QLabel("⚠️")
+        self.disclaimer_icon.setStyleSheet("background-color: white;")
+        self.disclaimer_icon.setAlignment(Qt.AlignTop)
 
         self.disclaimer_text = QLabel(
             "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
@@ -250,7 +252,7 @@ class MainWindow(QMainWindow):
         self.disclaimer_text.setStyleSheet("background-color: white;")
         self.disclaimer_text.setAlignment(Qt.AlignLeft)
 
-        disclaimer_layout.addWidget(disclaimer_icon)
+        disclaimer_layout.addWidget(self.disclaimer_icon)
         disclaimer_layout.addWidget(self.disclaimer_text)
         disclaimer_layout.addStretch()
 
@@ -496,14 +498,9 @@ class MainWindow(QMainWindow):
 
         self.results_layout.addStretch()
 
-    def change_theme(self):
-        if self.theme_button.isChecked():
-            theme_label = "Dark" if self.current_language == "EN" else "Ciemny"
-            self.theme_button.setText(theme_label)
-
-        else:
-            theme_label = "Light" if self.current_language == "EN" else "Jasny"
-            self.theme_button.setText(theme_label)
+    def change_theme(self, theme):
+        self.theme_manager.apply_theme(theme)
+        self.refresh_results()
 
     def clear_selection(self):
         # Clear chosen files
@@ -609,13 +606,25 @@ class MainWindow(QMainWindow):
         Create colorful result card for the pred.
         """
         colors = {
-            "glioma_tumor": "#DA5F62",
-            "meningioma_tumor": "#F0B880",
-            "no_tumor": "#93F080",
-            "pituitary_tumor": "#F0F47A",
+            "Light": {
+                "glioma_tumor": "#DA5F62",
+                "meningioma_tumor": "#F0B880",
+                "no_tumor": "#93F080",
+                "pituitary_tumor": "#F0F47A",
+                "text": "black",
+            },
+            "Dark": {
+                "glioma_tumor": "#982527",
+                "meningioma_tumor": "#AC6723",
+                "no_tumor": "#519A47",
+                "pituitary_tumor": "#A6A637",
+                "text": "#FFFAF2",
+            }
+                
         }
-
-        card_color = colors[pred]
+    
+        current_theme = self.theme_manager.current_theme
+        card_color = colors[current_theme][pred]
 
         card = QWidget()
         card.setAttribute(Qt.WA_StyledBackground, True)

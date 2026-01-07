@@ -14,7 +14,7 @@ class ItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index)
         size.setHeight(30)
-        return size
+        return size 
 
 
 class TopBar(QWidget):
@@ -78,14 +78,14 @@ class TopBar(QWidget):
         self.update_theme()
 
     def set_light_theme(self):
-        self.theme = "light"
+        self.theme = "Light"
         self.update_theme()
-        self.theme_changed.emit("light")
+        self.theme_changed.emit("Light")
 
     def set_dark_theme(self):
-        self.theme = "dark"
+        self.theme = "Dark"
         self.update_theme()
-        self.theme_changed.emit("dark")
+        self.theme_changed.emit("Dark") 
 
     def update_theme(self):
         if self.theme.lower() == "light":
