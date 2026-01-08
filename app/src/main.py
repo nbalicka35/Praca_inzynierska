@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.last_results = None
         self.result_type = None
         self.theme_manager = ThemesManager(self)
+        self.sorted_results = None
 
         self.TEXTS = {
             "EN": {
@@ -75,6 +76,14 @@ class MainWindow(QMainWindow):
                 "no_jpg": "No .jpg files found in {folder}",
                 "thinking": "Thinking...",
                 "images": "images",
+                "sort_by": "Sort by:",
+                "sort_default": "Default order",
+                "sort_filename_az": "Filename A-Z",
+                "sort_filename_za": "Filename Z-A",
+                "sort_class_az": "Class A-Z",
+                "sort_class_za": "Class Z-A",
+                "sort_conf_asc": "Confidence ⬆️",
+                "sort_conf_desc": "Confidence ⬇️",
                 "meningioma_tumor": "Meningioma Tumor",
                 "glioma_tumor": "Glioma Tumor",
                 "pituitary_tumor": "Pituitary Tumor",
@@ -92,6 +101,14 @@ class MainWindow(QMainWindow):
                 "no_jpg": "Brak plików .jpg w {folder}",
                 "thinking": "Myślę...",
                 "images": "obrazów",
+                "sort_by": "Sortuj:",
+                "sort_default": "Domyślnie",
+                "sort_filename_az": "Nazwa pliku A-Z",
+                "sort_filename_za": "Nazwa pliku Z-A",
+                "sort_class_az": "Klasa A-Z",
+                "sort_class_za": "Klasa Z-A",
+                "sort_conf_asc": "Pewność ⬆️",
+                "sort_conf_desc": "Pewność ⬇️",
                 "meningioma_tumor": "Oponiak",
                 "glioma_tumor": "Glejak",
                 "pituitary_tumor": "Guz Przysadki",
@@ -281,6 +298,28 @@ class MainWindow(QMainWindow):
         self.step3_desc = QLabel("Check the result for the photo(s) below")
         self.step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
+        # TODO: add sort
+        sort_layout = QHBoxLayout()
+        sort_layout.setAlignment(Qt.AlignRight)
+
+        self.sort_label = QLabel(self.get_text("sort_by"))
+        self.sort_label.setStyleSheet("background-color: white;")
+        self.sort_by = QComboBox()
+        self.sort_by.addItems([
+            self.get_text("sort_default"),
+            self.get_text("sort_filename_az"),
+            self.get_text("sort_filename_za"),
+            self.get_text("sort_class_az"),
+            self.get_text("sort_class_za"),
+            self.get_text("sort_conf_asc"),
+            self.get_text("sort_conf_desc"),
+        ])
+        self.sort_combo.setFixedWidth(200)
+        self.sort_combo.currentIndexChanged.connect(self.sort_results)
+        
+        sort_layout.addWidget(self.sort_label)
+        sort_layout.addWidget(self.sort_combo)
+        
         # Result(s) panel
         self.results_card = QScrollArea()
         self.results_card.setObjectName("results_card")
@@ -322,6 +361,7 @@ class MainWindow(QMainWindow):
 
         right_column.addWidget(self.step3_label)
         right_column.addWidget(self.step3_desc)
+        right_column.addLayout(sort_layout)
         right_column.addWidget(self.results_card, 1)
 
         # Add columns to the card
@@ -876,7 +916,71 @@ class MainWindow(QMainWindow):
         print(f"change_language called with: {language}")
         self.current_language = language
         Translator(window=self, language=self.current_language)
+        
         self.refresh_results()
+        self.refresh_sort_combobox()
+        
+    def sort_results(self, index):
+        if self.last_results is None or self.result_type == 'single':
+            return
+        
+        res = self.last_results.copy()
+        if index == 0:
+            res = self.last_results.copy()
+        elif index == 1:
+        # Filename A-Z
+            res.sort(key=lambda x: os.path.basename(x["filepath"]).lower())
+        elif index == 2:
+        # Filename Z-A
+            res.sort(key=lambda x: os.path.basename(x["filepath"]).lower(), reverse=True)
+        elif index == 3:
+        # Classname A-Z
+            res.sort(key=lambda x: os.path.basename(x["class_name"]).lower())
+        elif index == 4:
+        # Classname Z-A
+            res.sort(key=lambda x: os.path.basename(x["class_name"]).lower(), reverse=True)
+        elif index == 5:
+        # Confidence ASC
+            res.sort(key=lambda x: x["confidence"])
+        elif index == 6:
+        # Confidence DESC
+            res.sort(key=lambda x: x["confidence"], reverse=True)
+
+        self.sorted_results = res
+        self.rebuild_result_cards()
+        
+    def rebuild_result_card(self):
+        self.clear_results()
+        
+        for res in self.last_results:
+            card = self.create_res_card(
+                filepath=res["filepath"],
+                filename=os.path.basename(res["filepath"]),
+                pred=res["class_name"],
+                confidence=res["confidence"],
+            )
+            self.results_layout.addWidget(card)
+            
+        self.results_layout.addStretch()
+        self.update_confidence_bar_visibility()
+
+    def refresh_sort_combobox(self):
+        idx = self.sort_by.currentIndex()
+        
+        self.sort_by.blockSignals(True)
+        self.sort_by.clear()
+        self.sort_by.addItems([
+            self.get_text("sort_default"),
+            self.get_text("sort_filename_az"),
+            self.get_text("sort_filename_za"),
+            self.get_text("sort_class_az"),
+            self.get_text("sort_class_za"),
+            self.get_text("sort_conf_asc"),
+            self.get_text("sort_conf_desc"),
+        ])
+        
+        self.sort_by.setCurrentIndex(idx)
+        self.blockSignals(False)
 
     def get_text(self, key, **kwargs):
         text = self.TEXTS[self.current_language].get(key)
