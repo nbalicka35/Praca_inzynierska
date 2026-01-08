@@ -21,6 +21,7 @@ class ThemesManager:
             "vscroll-handle-background": "rgba(27, 32, 55, .5)"
         }
     }
+    
     def __init__(self, window): 
         self.window=window
         self.current_theme="Light"

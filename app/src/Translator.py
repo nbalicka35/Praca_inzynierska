@@ -23,10 +23,10 @@ class Translator:
         print("set_polish() executing")
         self.current_window.step1_label.setText("Krok 1")
         self.current_window.step1_desc.setText(
-            "Wybierz plik .jpg lub ścieżkę z obrazami"
+            "Wybierz plik(i) JPG lub ścieżkę z obrazami"
         )
 
-        self.current_window.file_button.setText("Wybierz plik")
+        self.current_window.file_button.setText("Wybierz plik(i)")
         self.current_window.dir_button.setText("Wybierz folder")
 
         self.current_window.preview_label.setText(

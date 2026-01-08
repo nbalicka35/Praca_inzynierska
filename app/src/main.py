@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
                 "selected_images": "Selected {count} images from {folder}",
                 "no_jpg": "No .jpg files found in {folder}",
                 "thinking": "Thinking...",
+                "images": "images",
                 "meningioma_tumor": "Meningioma Tumor",
                 "glioma_tumor": "Glioma Tumor",
                 "pituitary_tumor": "Pituitary Tumor",
@@ -90,6 +91,7 @@ class MainWindow(QMainWindow):
                 "selected_images": "Wybrano {count} obrazów z {folder}",
                 "no_jpg": "Brak plików .jpg w {folder}",
                 "thinking": "Myślę...",
+                "images": "obrazów",
                 "meningioma_tumor": "Oponiak",
                 "glioma_tumor": "Glejak",
                 "pituitary_tumor": "Guz Przysadki",
@@ -155,12 +157,12 @@ class MainWindow(QMainWindow):
         self.step1_label.setStyleSheet(
             "font-weight: bold; font-size: 18px; background-color:white;"
         )
-        self.step1_desc = QLabel("Select .jpg file or directory")
+        self.step1_desc = QLabel("Select JPG file(s) or directory")
         self.step1_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Choice buttons
         buttons_layout = QHBoxLayout()
-        self.file_button = QPushButton("Choose file")
+        self.file_button = QPushButton("Choose file(s)")
         self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         self.file_button.setStyleSheet(button_style)
         self.file_button.setCursor(Qt.PointingHandCursor)
@@ -344,28 +346,57 @@ class MainWindow(QMainWindow):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
         window_title = "Open File" if self.current_language == "EN" else "Wybierz plik"
 
-        filename, _ = QFileDialog.getOpenFileName(
+        filenames, _ = QFileDialog.getOpenFileNames(
             self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
         )
+        
+        if not filenames:
+            return
+        
+        self.preview_label.setVisible(False)
+        self.preview_container.setVisible(True)
+        self.clear_thumbnails()
 
-        if filename:
-            self.selected_file = filename
+        if len(filenames) == 1:
+            self.selected_file = filenames[0]
             self.selected_files = []
 
-            self.preview_label.setVisible(False)
-            self.preview_container.setVisible(True)
-
-            file_name = os.path.basename(filename)
+            file_name = os.path.basename(filenames[0])
             self.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
 
             self.clear_thumbnails()
-            self.add_thumbnail(filename)
+            self.add_thumbnail(filenames[0])
+            
+        else:
+            self.selected_file = None
+            self.selected_files = filenames
+            
+            self.file_name_label.setText(
+                f"{self.get_text('selected')}: {len(filenames)} {self.get_text('images')}"
+            )
+            
+            for filepath in filenames[:3]:
+                self.add_thumbnail(filepath)
+                
+            if len(filenames) > 3:
+                more_label = QLabel(f"+{len(filenames) - 3}")
+                more_label.setStyleSheet(
+                    """
+                    background-color: rgba(148, 211, 255, .3);
+                    border-radius: 10px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    """
+                )
+                more_label.setAlignment(Qt.AlignCenter)
+                more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
+                self.thumbnails_layout.addWidget(more_label)
 
-            self.predict_enabled = True
-            self.predict_button.setEnabled(self.predict_enabled)
-            self.clear_button.setVisible(True)
-            self.clear_button.setEnabled(True)
-            print(f"{filename} loaded.")
+        self.predict_enabled = True
+        self.predict_button.setEnabled(self.predict_enabled)
+        self.clear_button.setVisible(True)
+        self.clear_button.setEnabled(True)
+        print(f"{len(filenames)} file(s) loaded.")
 
     def open_directory(self):
         window_title = (
