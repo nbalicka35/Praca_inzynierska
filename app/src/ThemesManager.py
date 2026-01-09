@@ -123,3 +123,5 @@ class ThemesManager:
             f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};"
         )
         self.window.step3_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        
+        self.window.sort_label.setStyleSheet(f"background-color: {colors["card"]};")

@@ -7,18 +7,15 @@ app_dir = os.path.dirname(current_dir)  # app
 project_dir = os.path.dirname(app_dir)  # Praca_inzynierska
 utils_dir = os.path.join(app_dir, "utils")
 
-# checkpoint's dir
+# Checkpoint's dir (file with model parameters)
 CHECKPOINT_PATH = os.path.join(project_dir, "config", "resnet34.pth")
 
 sys.path.insert(0, utils_dir)
 
-# Import PyTorch (przed PyQt5)
 from BrainTumorClassifier import BrainTumorClassifier
-from ThemesManager import ThemesManager
 from GradCAM import generate_gradcam
-from ErrMsgDialog import ErrMsgDialog
 
-# Ustaw ścieżkę do pluginów Qt przed importem PyQt5 (przypadek dla środowiska wirtualnego)
+# Set the Qt plugins' directory before Qt5 import (case for virtual environment)
 pyqt_path = os.path.join(sys.prefix, "Lib", "site-packages", "PyQt5", "Qt5", "plugins")
 os.environ["QT_PLUGIN_PATH"] = pyqt_path
 
@@ -33,16 +30,19 @@ from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QComboBox,
-    QSizePolicy,
     QScrollArea,
     QProgressBar,
     QDialog,
 )
+from PyQt5.QtCore import QSize, QStandardPaths, Qt
+from PyQt5.QtGui import QPixmap, QImage
+
 import numpy as np
 import cv2
 from PIL import Image
-from PyQt5.QtCore import QSize, QStandardPaths, Qt
-from PyQt5.QtGui import QPixmap, QImage
+
+from ThemesManager import ThemesManager
+from ErrMsgDialog import ErrMsgDialog
 from TopBar import TopBar
 from Translator import Translator
 
@@ -52,15 +52,18 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.current_language = "EN"
+        self.theme_manager = ThemesManager(self)
+        
         self.selected_file = None
         self.selected_files = []
         self.selected_directory = None
+        
         self.predict_enabled = False
-        self.current_language = "EN"
         self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
+        
         self.last_results = None
         self.result_type = None
-        self.theme_manager = ThemesManager(self)
         self.sorted_results = None
 
         self.TEXTS = {
@@ -121,7 +124,6 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(1280, 720))
 
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #FFFAF2;")
 
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -133,18 +135,9 @@ class MainWindow(QMainWindow):
         self.top_bar.language_changed.connect(self.change_language)
         self.top_bar.theme_changed.connect(self.change_theme)
 
-        # White card
+        # Main card
         self.card = QWidget()
         self.card.setObjectName("card")
-        self.card.setStyleSheet(
-            """
-            #card {
-                background-color: white;
-                border-top-left-radius: 20px;
-                border-top-right-radius: 20px;
-            }
-        """
-        )
 
         self.card_layout = QHBoxLayout(self.card)
         self.card_layout.setContentsMargins(40, 40, 40, 40)
@@ -155,39 +148,33 @@ class MainWindow(QMainWindow):
         left_column.setAlignment(Qt.AlignTop)
 
         # Buttons styles
-        button_style = """
-            QPushButton {
-                background-color: rgba(148, 211, 255, .72);
-                border: 0px;
-                border-radius: 10px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: rgba(148, 211, 255, .9);
-            }
-        """
+        # button_style = """
+        #     QPushButton {
+        #         background-color: rgba(148, 211, 255, .72);
+        #         border: 0px;
+        #         border-radius: 10px;
+        #         font-size: 12px;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: rgba(148, 211, 255, .9);
+        #     }
+        # """
         BUTTON_WIDTH = 150
         BUTTON_HEIGHT = 45
 
         # Step 1
         self.step1_label = QLabel("Step 1")
-        self.step1_label.setStyleSheet(
-            "font-weight: bold; font-size: 18px; background-color:white;"
-        )
         self.step1_desc = QLabel("Select JPG file(s) or directory")
-        self.step1_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
-        # Choice buttons
+        # Open buttons
         buttons_layout = QHBoxLayout()
         self.file_button = QPushButton("Choose file(s)")
         self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.file_button.setStyleSheet(button_style)
         self.file_button.setCursor(Qt.PointingHandCursor)
         self.file_button.clicked.connect(self.open_file)
 
         self.dir_button = QPushButton("Choose directory")
         self.dir_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.dir_button.setStyleSheet(button_style)
         self.dir_button.setCursor(Qt.PointingHandCursor)
         self.dir_button.clicked.connect(self.open_directory)
 
@@ -196,10 +183,9 @@ class MainWindow(QMainWindow):
         buttons_layout.addStretch()
 
         self.preview_label = QLabel("Preview of selected image(s) will appear below")
-        self.preview_label.setStyleSheet("background-color:white;")
 
+        # Image(s) preview section
         self.preview_container = QWidget()
-        self.preview_container.setStyleSheet("background-color: white;")
         self.preview_container.setVisible(False)
 
         preview_container_layout = QVBoxLayout(self.preview_container)
@@ -207,14 +193,12 @@ class MainWindow(QMainWindow):
         preview_container_layout.setSpacing(10)
 
         self.file_name_label = QLabel("")
-        self.file_name_label.setStyleSheet("background-color: white; font-size: 12px;")
-
+        
         image_row = QHBoxLayout()
         image_row.setAlignment(Qt.AlignLeft)
         image_row.setSpacing(10)
 
         self.thumbnails_container = QWidget()
-        self.thumbnails_container.setStyleSheet("background-color: white;")
         self.thumbnails_layout = QHBoxLayout(self.thumbnails_container)
         self.thumbnails_layout.setContentsMargins(0, 0, 0, 0)
         self.thumbnails_layout.setSpacing(10)
@@ -223,7 +207,6 @@ class MainWindow(QMainWindow):
         # Clear button
         self.clear_button = QPushButton("Clear")
         self.clear_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.clear_button.setStyleSheet(button_style)
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.clicked.connect(self.clear_selection)
         self.clear_button.setEnabled(False)
@@ -238,20 +221,17 @@ class MainWindow(QMainWindow):
 
         # Step 2
         self.step2_label = QLabel("Step 2")
-        self.step2_label.setStyleSheet(
-            "font-weight: bold; font-size: 18px; background-color:white;"
-        )
         self.step2_desc = QLabel("Examine photo(s)")
-        self.step2_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
         # Predict button
         predict_layout = QHBoxLayout()
+        
         self.predict_button = QPushButton("Predict")
         self.predict_button.setEnabled(self.predict_enabled)
         self.predict_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.predict_button.setStyleSheet(button_style)
         self.predict_button.setCursor(Qt.PointingHandCursor)
         self.predict_button.clicked.connect(self.predict)
+        
         predict_layout.addWidget(self.predict_button)
         predict_layout.addStretch()
 
@@ -261,14 +241,12 @@ class MainWindow(QMainWindow):
         disclaimer_layout.setSpacing(5)
 
         self.disclaimer_icon = QLabel("⚠️")
-        self.disclaimer_icon.setStyleSheet("background-color: white;")
         self.disclaimer_icon.setAlignment(Qt.AlignTop)
 
         self.disclaimer_text = QLabel(
             "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
             "Always examine patients and make a decision based on the knowledge of yours."
         )
-        self.disclaimer_text.setStyleSheet("background-color: white;")
         self.disclaimer_text.setAlignment(Qt.AlignLeft)
 
         disclaimer_layout.addWidget(self.disclaimer_icon)
@@ -291,19 +269,16 @@ class MainWindow(QMainWindow):
         right_column = QVBoxLayout()
         right_column.setAlignment(Qt.AlignTop)
 
+        # Step 3
         self.step3_label = QLabel("Step 3")
-        self.step3_label.setStyleSheet(
-            "font-weight: bold; font-size: 18px; background-color: white;"
-        )
         self.step3_desc = QLabel("Check the result for the photo(s) below")
-        self.step3_desc.setStyleSheet("font-size: 16px; background-color:white;")
 
-        # TODO: add sort
         sort_layout = QHBoxLayout()
         sort_layout.setAlignment(Qt.AlignRight)
 
+        # Sort options
         self.sort_label = QLabel(self.get_text("sort_by"))
-        self.sort_label.setStyleSheet("background-color: white;")
+        
         self.sort_by = QComboBox()
         self.sort_by.addItems([
             self.get_text("sort_default"),
@@ -314,11 +289,13 @@ class MainWindow(QMainWindow):
             self.get_text("sort_conf_asc"),
             self.get_text("sort_conf_desc"),
         ])
-        self.sort_combo.setFixedWidth(200)
-        self.sort_combo.currentIndexChanged.connect(self.sort_results)
+        self.sort_by.setFixedSize(200, 40)
+        self.sort_by.setCursor(Qt.PointingHandCursor)
+        self.sort_by.view().setCursor(Qt.PointingHandCursor)
+        self.sort_by.currentIndexChanged.connect(self.sort_results)
         
         sort_layout.addWidget(self.sort_label)
-        sort_layout.addWidget(self.sort_combo)
+        sort_layout.addWidget(self.sort_by)
         
         # Result(s) panel
         self.results_card = QScrollArea()
@@ -326,32 +303,9 @@ class MainWindow(QMainWindow):
         self.results_card.setWidgetResizable(True)
         self.results_card.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.results_card.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.results_card.setStyleSheet(
-            """
-            #results_card {
-                background-color: rgba(148, 211, 255, .2);
-                border-radius: 10px;
-                border: none;
-            }
-            QScrollBar:vertical {
-                background: rgba(148, 211, 255, .1);
-                width: 10px;
-                border-radius: 5px;
-            }
-            QScrollBar::handle:vertical {
-                background: rgba(148, 211, 255, .5);
-                border-radius: 5px;
-                min-height: 20px;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height: 0px;
-            }
-        """
-        )
         self.results_card.setMinimumHeight(300)
 
         self.results_container = QWidget()
-        self.results_container.setStyleSheet("background-color: transparent;")
         self.results_layout = QVBoxLayout(self.results_container)
         self.results_layout.setContentsMargins(15, 15, 15, 15)
         self.results_layout.setSpacing(10)
@@ -380,11 +334,16 @@ class MainWindow(QMainWindow):
 
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
+        
+        self.theme_manager.apply_theme(theme=self.theme_manager.current_theme)
+        
         self.setCentralWidget(central_widget)
 
     def open_file(self):
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
-        window_title = "Open File" if self.current_language == "EN" else "Wybierz plik"
+        window_title = "Open File" \
+            if self.current_language == "EN" \
+            else "Wybierz plik"
 
         filenames, _ = QFileDialog.getOpenFileNames(
             self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
@@ -578,6 +537,7 @@ class MainWindow(QMainWindow):
         self.selected_file = None
         self.selected_files = []
         self.selected_directory = None
+        self.sorted_results = None
 
         self.preview_label.setVisible(True)
         self.preview_container.setVisible(False)
@@ -590,6 +550,8 @@ class MainWindow(QMainWindow):
 
         self.clear_button.setVisible(True)
         self.clear_button.setEnabled(False)
+        
+        self.sort_by.setCurrentIndex(0)
         print("Selection cleared.")
 
     def get_preview_size(self):
@@ -947,12 +909,12 @@ class MainWindow(QMainWindow):
             res.sort(key=lambda x: x["confidence"], reverse=True)
 
         self.sorted_results = res
-        self.rebuild_result_cards()
+        self.rebuild_result_card()
         
     def rebuild_result_card(self):
         self.clear_results()
         
-        for res in self.last_results:
+        for res in self.sorted_results:
             card = self.create_res_card(
                 filepath=res["filepath"],
                 filename=os.path.basename(res["filepath"]),
