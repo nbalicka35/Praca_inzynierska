@@ -68,6 +68,8 @@ class MainWindow(QMainWindow):
 
         self.TEXTS = {
             "EN": {
+                "open_file": "Open File",
+                "select_folder": "Select Directory",
                 "confidence": "confidence",
                 "original": "Original",
                 "heatmap": "GradCAM Heatmap",
@@ -93,6 +95,8 @@ class MainWindow(QMainWindow):
                 "no_tumor": "No Tumor"
             },
             "PL": {
+                "open_file": "Wybierz plik",
+                "select_folder": "Wybierz folder",
                 "confidence": "pewności",
                 "original": "Oryginał",
                 "heatmap": "Mapa ciepła GradCAM",
@@ -147,18 +151,6 @@ class MainWindow(QMainWindow):
         left_column = QVBoxLayout()
         left_column.setAlignment(Qt.AlignTop)
 
-        # Buttons styles
-        # button_style = """
-        #     QPushButton {
-        #         background-color: rgba(148, 211, 255, .72);
-        #         border: 0px;
-        #         border-radius: 10px;
-        #         font-size: 12px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: rgba(148, 211, 255, .9);
-        #     }
-        # """
         BUTTON_WIDTH = 150
         BUTTON_HEIGHT = 45
 
@@ -340,11 +332,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def open_file(self):
+        # Get user's 'Pictures' path
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
-        window_title = "Open File" \
-            if self.current_language == "EN" \
-            else "Wybierz plik"
+        window_title = self.get_text("open_file")
 
+        # Fetch selected file(s) names
         filenames, _ = QFileDialog.getOpenFileNames(
             self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
         )
@@ -352,21 +344,26 @@ class MainWindow(QMainWindow):
         if not filenames:
             return
         
+        # Turn the preview on
         self.preview_label.setVisible(False)
         self.preview_container.setVisible(True)
+        
+        # Wipe data just in case
         self.clear_thumbnails()
 
         if len(filenames) == 1:
+            # User selected single file
             self.selected_file = filenames[0]
             self.selected_files = []
 
             file_name = os.path.basename(filenames[0])
             self.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
 
-            self.clear_thumbnails()
+            # Display thumbnail
             self.add_thumbnail(filenames[0])
             
         else:
+            # User selected multiple files
             self.selected_file = None
             self.selected_files = filenames
             
@@ -374,10 +371,12 @@ class MainWindow(QMainWindow):
                 f"{self.get_text('selected')}: {len(filenames)} {self.get_text('images')}"
             )
             
+            # Display up to 3 thumbnails
             for filepath in filenames[:3]:
                 self.add_thumbnail(filepath)
                 
             if len(filenames) > 3:
+                # Add more thumbnail
                 more_label = QLabel(f"+{len(filenames) - 3}")
                 more_label.setStyleSheet(
                     """
@@ -389,14 +388,18 @@ class MainWindow(QMainWindow):
                 )
                 more_label.setAlignment(Qt.AlignCenter)
                 more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
+                
+                # Add as the last element
                 self.thumbnails_layout.addWidget(more_label)
 
+        # Enable predict button
         self.predict_enabled = True
         self.predict_button.setEnabled(self.predict_enabled)
+        
+        # Enable clear button
         self.clear_button.setVisible(True)
         self.clear_button.setEnabled(True)
-        print(f"{len(filenames)} file(s) loaded.")
-
+        
     def open_directory(self):
         window_title = (
             "Select Folder" if self.current_language == "EN" else "Wybierz folder"
