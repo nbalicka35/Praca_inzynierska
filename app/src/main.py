@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
 
         self.current_language = "EN"
         self.theme_manager = ThemesManager(self)
+        self.translator = Translator(language=self.current_language, window=self)
         
         self.selected_file = None
         self.selected_files = []
@@ -66,63 +67,6 @@ class MainWindow(QMainWindow):
         self.last_results = None
         self.result_type = None
         self.sorted_results = None
-
-        self.TEXTS = {
-            "EN": {
-                "open_file": "Open File",
-                "select_folder": "Select Directory",
-                "confidence": "confidence",
-                "original": "Original",
-                "heatmap": "GradCAM Heatmap",
-                "overlay": "Overlay",
-                "prediction": "Prediction",
-                "gradcam_title": "GradCAM for",
-                "selected": "Selected",
-                "selected_images": "Selected {count} images from {folder}",
-                "no_jpg": "No .jpg files found in {folder}",
-                "thinking": "Thinking...",
-                "images": "images",
-                "sort_by": "Sort by:",
-                "sort_default": "Default order",
-                "sort_filename_az": "Filename A-Z",
-                "sort_filename_za": "Filename Z-A",
-                "sort_class_az": "Class A-Z",
-                "sort_class_za": "Class Z-A",
-                "sort_conf_asc": "Confidence ⬆️",
-                "sort_conf_desc": "Confidence ⬇️",
-                "meningioma_tumor": "Meningioma Tumor",
-                "glioma_tumor": "Glioma Tumor",
-                "pituitary_tumor": "Pituitary Tumor",
-                "no_tumor": "No Tumor"
-            },
-            "PL": {
-                "open_file": "Wybierz plik",
-                "select_folder": "Wybierz folder",
-                "confidence": "pewności",
-                "original": "Oryginał",
-                "heatmap": "Mapa ciepła GradCAM",
-                "overlay": "Nałożenie",
-                "prediction": "Predykcja",
-                "gradcam_title": "GradCAM dla",
-                "selected": "Wybrano",
-                "selected_images": "Wybrano {count} obrazów z {folder}",
-                "no_jpg": "Brak plików .jpg w {folder}",
-                "thinking": "Myślę...",
-                "images": "obrazów",
-                "sort_by": "Sortuj:",
-                "sort_default": "Domyślnie",
-                "sort_filename_az": "Nazwa pliku A-Z",
-                "sort_filename_za": "Nazwa pliku Z-A",
-                "sort_class_az": "Klasa A-Z",
-                "sort_class_za": "Klasa Z-A",
-                "sort_conf_asc": "Pewność ⬆️",
-                "sort_conf_desc": "Pewność ⬇️",
-                "meningioma_tumor": "Oponiak",
-                "glioma_tumor": "Glejak",
-                "pituitary_tumor": "Guz Przysadki",
-                "no_tumor": "Brak guza"
-            }
-        }
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
@@ -172,6 +116,7 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         
         self.theme_manager.apply_theme(theme=self.theme_manager.current_theme)
+        self.translator.apply()
         
         self.setCentralWidget(central_widget)
 
@@ -732,7 +677,8 @@ class MainWindow(QMainWindow):
     def change_language(self, language):
         print(f"change_language called with: {language}")
         self.current_language = language
-        Translator(window=self, language=self.current_language)
+        self.translator = Translator(window=self, language=self.current_language)
+        self.translator.apply()
         
         self.refresh_results()
         self.refresh_sort_combobox()
@@ -800,11 +746,7 @@ class MainWindow(QMainWindow):
         self.card.sort_by.blockSignals(False)
 
     def get_text(self, key, **kwargs):
-        text = self.TEXTS[self.current_language].get(key)
-        if kwargs:
-            text = text.format(**kwargs)
-            
-        return text
+        return self.translator.get_text(key, **kwargs)
         
     def clear_results(self):
         """

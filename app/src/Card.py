@@ -137,12 +137,13 @@ class Card(QWidget):
         self.right_column = QVBoxLayout()
         self.right_column.setAlignment(Qt.AlignTop)
 
+
         # Step 3
         self.step3_label = QLabel("Step 3")
         self.step3_desc = QLabel("Check the result for the photo(s) below")
 
         sort_layout = QHBoxLayout()
-        sort_layout.setAlignment(Qt.AlignRight)
+        sort_layout.setAlignment(Qt.AlignRight | Qt.AlignBottom)
 
         # Sort options
         self.sort_label = QLabel("Sort by:")

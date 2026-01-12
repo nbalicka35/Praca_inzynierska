@@ -1,16 +1,73 @@
 class Translator:
-    CLASSES = {
-        "Meningioma Tumor": "Oponiak",
-        "Glioma Tumor": "Glejak",
-        "Pituitary Tumor": "Guz Przysadki",
-        "No Tumor": "Brak Guza",
+    TEXTS = {
+        "EN": {
+            "open_file": "Open File",
+            "select_folder": "Select Directory",
+            "confidence": "confidence",
+            "original": "Original",
+            "heatmap": "GradCAM Heatmap",
+            "overlay": "Overlay",
+            "prediction": "Prediction",
+            "gradcam_title": "GradCAM for",
+            "selected": "Selected",
+            "selected_images": "Selected {count} images from {folder}",
+            "no_jpg": "No .jpg files found in {folder}",
+            "thinking": "Thinking...",
+            "images": "images",
+            "sort_by": "Sort by:",
+            "sort_default": "Default order",
+            "sort_filename_az": "Filename A-Z",
+            "sort_filename_za": "Filename Z-A",
+            "sort_class_az": "Class A-Z",
+            "sort_class_za": "Class Z-A",
+            "sort_conf_asc": "Confidence ⬆️",
+            "sort_conf_desc": "Confidence ⬇️",
+            "meningioma_tumor": "Meningioma Tumor",
+            "glioma_tumor": "Glioma Tumor",
+            "pituitary_tumor": "Pituitary Tumor",
+            "no_tumor": "No Tumor",
+            "image_load_failed": "Image loading failed",
+            "could_not_load": "Could not load the image",
+            "visualization_error": "Visualization error has occurred",
+        },
+        "PL": {
+            "open_file": "Wybierz plik",
+            "select_folder": "Wybierz folder",
+            "confidence": "pewności",
+            "original": "Oryginał",
+            "heatmap": "Mapa ciepła GradCAM",
+            "overlay": "Nałożenie",
+            "prediction": "Predykcja",
+            "gradcam_title": "GradCAM dla",
+            "selected": "Wybrano",
+            "selected_images": "Wybrano {count} obrazów z {folder}",
+            "no_jpg": "Brak plików .jpg w {folder}",
+            "thinking": "Myślę...",
+            "images": "obrazów",
+            "sort_by": "Sortuj:",
+            "sort_default": "Domyślnie",
+            "sort_filename_az": "Nazwa pliku A-Z",
+            "sort_filename_za": "Nazwa pliku Z-A",
+            "sort_class_az": "Klasa A-Z",
+            "sort_class_za": "Klasa Z-A",
+            "sort_conf_asc": "Pewność ⬆️",
+            "sort_conf_desc": "Pewność ⬇️",
+            "meningioma_tumor": "Oponiak",
+            "glioma_tumor": "Glejak",
+            "pituitary_tumor": "Guz Przysadki",
+            "no_tumor": "Brak guza",
+            "image_load_failed": "Załadowanie obrazu nie powiodło się",
+            "could_not_load": "Błąd podczas ładowania obrazu",
+            "visualization_error": "Wystąpił błąd wizualizacji",
+        }
     }
 
     def __init__(self, language, window):
         self.current_lang = language
         self.current_window = window
         print(f"Translator init with language: {language}")
-
+            
+    def apply(self):
         if self.current_lang == "PL":
             print("Calling set_polish()")
             self.set_polish()
@@ -18,6 +75,13 @@ class Translator:
         elif self.current_lang == "EN":
             print("Calling set_english()")
             self.set_english()
+            
+    def get_text(self, key, **kwargs):
+        text = self.TEXTS[self.current_lang].get(key)
+        if kwargs:
+            text = text.format(**kwargs)
+            
+        return text
 
     def set_polish(self):
         print("set_polish() executing")
