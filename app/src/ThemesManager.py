@@ -49,8 +49,8 @@ class ThemesManager:
             """
         )
         
-        self.window.preview_container.setStyleSheet(f"background-color: {colors["card"]};")
-        self.window.thumbnails_container.setStyleSheet(f"background-color: {colors["card"]};")
+        self.window.card.preview_container.setStyleSheet(f"background-color: {colors["card"]};")
+        self.window.card.thumbnails_container.setStyleSheet(f"background-color: {colors["card"]};")
 
         
     def _apply_button_style(self,colors):
@@ -66,21 +66,21 @@ class ThemesManager:
                 background-color: {colors["button-hover"]};
             }}
             """
-        self.window.file_button.setStyleSheet(
+        self.window.card.file_button.setStyleSheet(
             button_style
         )
-        self.window.dir_button.setStyleSheet(
+        self.window.card.dir_button.setStyleSheet(
             button_style
         )
-        self.window.clear_button.setStyleSheet(
+        self.window.card.clear_button.setStyleSheet(
             button_style
         )
-        self.window.predict_button.setStyleSheet(
+        self.window.card.predict_button.setStyleSheet(
             button_style
         )
         
     def _apply_res_card_style(self, colors):
-        self.window.results_card.setStyleSheet(
+        self.window.card.results_card.setStyleSheet(
         f"""
         #results_card {{
                 background-color: {colors["res-card-background"]};
@@ -104,24 +104,28 @@ class ThemesManager:
         """
         )
         
+        self.window.card.results_container.setStyleSheet(
+            f"background-color: transparent;"
+        )
+        
     def _apply_labels_style(self, colors):
-        self.window.step1_label.setStyleSheet(f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};")
-        self.window.step1_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step1_label.setStyleSheet(f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step1_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.preview_label.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
-        self.window.file_name_label.setStyleSheet(f"background-color: {colors["card"]}; font-size: 12px; color: {colors["text"]};")
+        self.window.card.preview_label.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
+        self.window.card.file_name_label.setStyleSheet(f"background-color: {colors["card"]}; font-size: 12px; color: {colors["text"]};")
         
-        self.window.step2_label.setStyleSheet(
+        self.window.card.step2_label.setStyleSheet(
             f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};"
         )
-        self.window.step2_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step2_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]};")
-        self.window.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
+        self.window.card.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]};")
+        self.window.card.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
         
-        self.window.step3_label.setStyleSheet(
+        self.window.card.step3_label.setStyleSheet(
             f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};"
         )
-        self.window.step3_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step3_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.sort_label.setStyleSheet(f"background-color: {colors["card"]};")
+        self.window.card.sort_label.setStyleSheet(f"background-color: {colors["card"]};")

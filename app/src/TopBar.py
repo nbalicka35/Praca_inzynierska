@@ -21,7 +21,7 @@ class TopBar(QWidget):
     theme_changed = pyqtSignal(str)
     language_changed = pyqtSignal(str)
 
-    def __init__(self, lang="EN", theme="Light"):
+    def __init__(self, theme="Light"):
         super().__init__()
 
         self.theme = theme

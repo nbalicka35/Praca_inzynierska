@@ -45,6 +45,7 @@ from ThemesManager import ThemesManager
 from ErrMsgDialog import ErrMsgDialog
 from TopBar import TopBar
 from Translator import Translator
+from Card import Card
 
 
 # TODO: split the file into smaller files
@@ -140,139 +141,8 @@ class MainWindow(QMainWindow):
         self.top_bar.theme_changed.connect(self.change_theme)
 
         # Main card
-        self.card = QWidget()
-        self.card.setObjectName("card")
-
-        self.card_layout = QHBoxLayout(self.card)
-        self.card_layout.setContentsMargins(40, 40, 40, 40)
-        self.card_layout.setSpacing(20)
-
-        # Left column inside the card
-        left_column = QVBoxLayout()
-        left_column.setAlignment(Qt.AlignTop)
-
-        BUTTON_WIDTH = 150
-        BUTTON_HEIGHT = 45
-
-        # Step 1
-        self.step1_label = QLabel("Step 1")
-        self.step1_desc = QLabel("Select JPG file(s) or directory")
-
-        # Open buttons
-        buttons_layout = QHBoxLayout()
-        self.file_button = QPushButton("Choose file(s)")
-        self.file_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.file_button.setCursor(Qt.PointingHandCursor)
-        self.file_button.clicked.connect(self.open_file)
-
-        self.dir_button = QPushButton("Choose directory")
-        self.dir_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.dir_button.setCursor(Qt.PointingHandCursor)
-        self.dir_button.clicked.connect(self.open_directory)
-
-        buttons_layout.addWidget(self.file_button)
-        buttons_layout.addWidget(self.dir_button)
-        buttons_layout.addStretch()
-
-        self.preview_label = QLabel("Preview of selected image(s) will appear below")
-
-        # Image(s) preview section
-        self.preview_container = QWidget()
-        self.preview_container.setVisible(False)
-
-        preview_container_layout = QVBoxLayout(self.preview_container)
-        preview_container_layout.setContentsMargins(0, 0, 0, 0)
-        preview_container_layout.setSpacing(10)
-
-        self.file_name_label = QLabel("")
-        
-        image_row = QHBoxLayout()
-        image_row.setAlignment(Qt.AlignLeft)
-        image_row.setSpacing(10)
-
-        self.thumbnails_container = QWidget()
-        self.thumbnails_layout = QHBoxLayout(self.thumbnails_container)
-        self.thumbnails_layout.setContentsMargins(0, 0, 0, 0)
-        self.thumbnails_layout.setSpacing(10)
-        self.thumbnails_layout.setAlignment(Qt.AlignLeft)
-
-        # Clear button
-        self.clear_button = QPushButton("Clear")
-        self.clear_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.clear_button.setCursor(Qt.PointingHandCursor)
-        self.clear_button.clicked.connect(self.clear_selection)
-        self.clear_button.setEnabled(False)
-
-        image_row.addWidget(self.thumbnails_container)
-        image_row.addSpacing(20)
-        image_row.addWidget(self.clear_button, alignment=Qt.AlignBottom)
-        image_row.addStretch()
-
-        preview_container_layout.addWidget(self.file_name_label)
-        preview_container_layout.addLayout(image_row)
-
-        # Step 2
-        self.step2_label = QLabel("Step 2")
-        self.step2_desc = QLabel("Examine photo(s)")
-
-        # Predict button
-        predict_layout = QHBoxLayout()
-        
-        self.predict_button = QPushButton("Predict")
-        self.predict_button.setEnabled(self.predict_enabled)
-        self.predict_button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-        self.predict_button.setCursor(Qt.PointingHandCursor)
-        self.predict_button.clicked.connect(self.predict)
-        
-        predict_layout.addWidget(self.predict_button)
-        predict_layout.addStretch()
-
-        # Disclaimer
-        disclaimer_layout = QHBoxLayout()
-        disclaimer_layout.setAlignment(Qt.AlignLeft)
-        disclaimer_layout.setSpacing(5)
-
-        self.disclaimer_icon = QLabel("⚠️")
-        self.disclaimer_icon.setAlignment(Qt.AlignTop)
-
-        self.disclaimer_text = QLabel(
-            "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
-            "Always examine patients and make a decision based on the knowledge of yours."
-        )
-        self.disclaimer_text.setAlignment(Qt.AlignLeft)
-
-        disclaimer_layout.addWidget(self.disclaimer_icon)
-        disclaimer_layout.addWidget(self.disclaimer_text)
-        disclaimer_layout.addStretch()
-
-        left_column.addWidget(self.step1_label)
-        left_column.addWidget(self.step1_desc)
-        left_column.addLayout(buttons_layout)
-        left_column.addWidget(self.preview_label)
-        left_column.addWidget(self.preview_container)
-        left_column.addSpacing(20)
-        left_column.addWidget(self.step2_label)
-        left_column.addWidget(self.step2_desc)
-        left_column.addLayout(predict_layout)
-        left_column.addStretch()
-        left_column.addLayout(disclaimer_layout)
-
-        # Right column inside the card
-        right_column = QVBoxLayout()
-        right_column.setAlignment(Qt.AlignTop)
-
-        # Step 3
-        self.step3_label = QLabel("Step 3")
-        self.step3_desc = QLabel("Check the result for the photo(s) below")
-
-        sort_layout = QHBoxLayout()
-        sort_layout.setAlignment(Qt.AlignRight)
-
-        # Sort options
-        self.sort_label = QLabel(self.get_text("sort_by"))
-        
-        self.sort_by = QComboBox()
-        self.sort_by.addItems([
+        self.card = Card()
+        self.card.sort_by.addItems([
             self.get_text("sort_default"),
             self.get_text("sort_filename_az"),
             self.get_text("sort_filename_za"),
@@ -281,38 +151,12 @@ class MainWindow(QMainWindow):
             self.get_text("sort_conf_asc"),
             self.get_text("sort_conf_desc"),
         ])
-        self.sort_by.setFixedSize(200, 40)
-        self.sort_by.setCursor(Qt.PointingHandCursor)
-        self.sort_by.view().setCursor(Qt.PointingHandCursor)
-        self.sort_by.currentIndexChanged.connect(self.sort_results)
         
-        sort_layout.addWidget(self.sort_label)
-        sort_layout.addWidget(self.sort_by)
-        
-        # Result(s) panel
-        self.results_card = QScrollArea()
-        self.results_card.setObjectName("results_card")
-        self.results_card.setWidgetResizable(True)
-        self.results_card.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.results_card.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.results_card.setMinimumHeight(300)
-
-        self.results_container = QWidget()
-        self.results_layout = QVBoxLayout(self.results_container)
-        self.results_layout.setContentsMargins(15, 15, 15, 15)
-        self.results_layout.setSpacing(10)
-        self.results_layout.setAlignment(Qt.AlignTop)
-
-        self.results_card.setWidget(self.results_container)
-
-        right_column.addWidget(self.step3_label)
-        right_column.addWidget(self.step3_desc)
-        right_column.addLayout(sort_layout)
-        right_column.addWidget(self.results_card, 1)
-
-        # Add columns to the card
-        self.card_layout.addLayout(left_column, 1)
-        self.card_layout.addLayout(right_column, 1)
+        self.card.file_button.clicked.connect(self.open_file)
+        self.card.dir_button.clicked.connect(self.open_directory)
+        self.card.clear_button.clicked.connect(self.clear_selection)
+        self.card.predict_button.clicked.connect(self.predict)
+        self.card.sort_by.currentIndexChanged.connect(self.sort_results)
 
         # Wrapper + margins
         card_wrapper = QWidget()
@@ -332,6 +176,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def open_file(self):
+        """
+        Opens a file dialog for selecting one or more JPG images.
+        """
         # Get user's 'Pictures' path
         pictures_path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
         window_title = self.get_text("open_file")
@@ -345,8 +192,8 @@ class MainWindow(QMainWindow):
             return
         
         # Turn the preview on
-        self.preview_label.setVisible(False)
-        self.preview_container.setVisible(True)
+        self.card.preview_label.setVisible(False)
+        self.card.preview_container.setVisible(True)
         
         # Wipe data just in case
         self.clear_thumbnails()
@@ -357,7 +204,7 @@ class MainWindow(QMainWindow):
             self.selected_files = []
 
             file_name = os.path.basename(filenames[0])
-            self.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
+            self.card.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
 
             # Display thumbnail
             self.add_thumbnail(filenames[0])
@@ -367,7 +214,7 @@ class MainWindow(QMainWindow):
             self.selected_file = None
             self.selected_files = filenames
             
-            self.file_name_label.setText(
+            self.card.file_name_label.setText(
                 f"{self.get_text('selected')}: {len(filenames)} {self.get_text('images')}"
             )
             
@@ -390,15 +237,15 @@ class MainWindow(QMainWindow):
                 more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
                 
                 # Add as the last element
-                self.thumbnails_layout.addWidget(more_label)
+                self.card.thumbnails_layout.addWidget(more_label)
 
         # Enable predict button
         self.predict_enabled = True
-        self.predict_button.setEnabled(self.predict_enabled)
+        self.card.predict_button.setEnabled(self.predict_enabled)
         
         # Enable clear button
-        self.clear_button.setVisible(True)
-        self.clear_button.setEnabled(True)
+        self.card.clear_button.setVisible(True)
+        self.card.clear_button.setEnabled(True)
         
     def open_directory(self):
         window_title = (
@@ -417,8 +264,8 @@ class MainWindow(QMainWindow):
                     if os.path.isfile(filepath):
                         jpg_files.append(filepath)
 
-        self.preview_label.setVisible(False)
-        self.preview_container.setVisible(True)
+        self.card.preview_label.setVisible(False)
+        self.card.preview_container.setVisible(True)
         self.clear_thumbnails()
 
         if jpg_files:
@@ -426,32 +273,32 @@ class MainWindow(QMainWindow):
             self.selected_files = jpg_files
             self.selected_directory = dirname
 
-            self.preview_label.setVisible(False)
-            self.preview_container.setVisible(True)
+            self.card.preview_label.setVisible(False)
+            self.card.preview_container.setVisible(True)
 
-            self.file_name_label.setText(
+            self.card.file_name_label.setText(
                 self.get_text("selected_images", count=len(jpg_files), folder=os.path.basename(dirname))
             )
 
             self.clear_thumbnails()
             self.show_directory_preview(jpg_files)
 
-            self.clear_button.setVisible(True)
-            self.clear_button.setEnabled(True)
+            self.card.clear_button.setVisible(True)
+            self.card.clear_button.setEnabled(True)
 
             self.predict_enabled = True
-            self.predict_button.setEnabled(self.predict_enabled)
+            self.card.predict_button.setEnabled(self.predict_enabled)
         else:
             self.selected_files = []
             self.selected_directory = None
 
-            self.file_name_label.setText(
+            self.card.file_name_label.setText(
                 {self.get_text("no_jpg", folder=os.path.basename(dirname))}
             )
             self.predict_enabled = False
-            self.predict_button.setEnabled(self.predict_enabled)
-            self.clear_button.setVisible(False)
-            self.clear_thumbnails()
+            self.card.predict_button.setEnabled(self.predict_enabled)
+            self.card.clear_button.setVisible(False)
+            self.card.clear_thumbnails()
 
     def predict(self):
         """
@@ -460,8 +307,8 @@ class MainWindow(QMainWindow):
         if not self.predict_enabled:
             return
 
-        self.predict_button.setText(self.get_text("thinking"))
-        self.clear_button.setEnabled(False)
+        self.card.predict_button.setText(self.get_text("thinking"))
+        self.card.clear_button.setEnabled(False)
 
         # Refresh app before long processing operation
         QApplication.processEvents()
@@ -486,9 +333,9 @@ class MainWindow(QMainWindow):
 
         finally:
             label = "Predict" if self.current_language=="EN" else "Uruchom"
-            self.predict_button.setText(label)
-            self.predict_button.setEnabled(True)
-            self.clear_button.setEnabled(True)
+            self.card.predict_button.setText(label)
+            self.card.predict_button.setEnabled(True)
+            self.card.clear_button.setEnabled(True)
 
     def refresh_results(self):
         if self.last_results is None:
@@ -511,8 +358,8 @@ class MainWindow(QMainWindow):
             pred=res["class_name"],
             confidence=res["confidence"],
         )
-        self.results_layout.addWidget(card)
-        self.results_layout.addStretch()
+        self.card.results_layout.addWidget(card)
+        self.card.results_layout.addStretch()
 
     def show_batch_res(self, res):
         """
@@ -527,9 +374,9 @@ class MainWindow(QMainWindow):
                 pred=result["class_name"],
                 confidence=result["confidence"],
             )
-            self.results_layout.addWidget(card)
+            self.card.results_layout.addWidget(card)
 
-        self.results_layout.addStretch()
+        self.card.results_layout.addStretch()
 
     def change_theme(self, theme):
         self.theme_manager.apply_theme(theme)
@@ -542,37 +389,42 @@ class MainWindow(QMainWindow):
         self.selected_directory = None
         self.sorted_results = None
 
-        self.preview_label.setVisible(True)
-        self.preview_container.setVisible(False)
+        self.card.preview_label.setVisible(True)
+        self.card.preview_container.setVisible(False)
 
-        self.file_name_label.setText("")
+        self.card.file_name_label.setText("")
         self.clear_thumbnails()
 
         self.predict_enabled = False
-        self.predict_button.setEnabled(self.predict_enabled)
+        self.card.predict_button.setEnabled(self.predict_enabled)
 
-        self.clear_button.setVisible(True)
-        self.clear_button.setEnabled(False)
+        self.card.clear_button.setVisible(True)
+        self.card.clear_button.setEnabled(False)
         
-        self.sort_by.setCurrentIndex(0)
+        self.card.sort_by.setCurrentIndex(0)
         print("Selection cleared.")
 
     def get_preview_size(self):
+        # Get 15% of current window size
         window_height = self.height()
         preview_size = int(window_height * 0.15)
+        
+        # Return value between 80 and 150
         return max(80, min(preview_size, 150))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
+        # Scale thumbnails
         self.update_thumbnails_size()
+        # Show confidence bars for larger windows
         self.update_confidence_bar_visibility()
 
     def update_thumbnails_size(self):
         preview_size = self.get_preview_size()
 
-        for i in range(self.thumbnails_layout.count()):
-            widget = self.thumbnails_layout.itemAt(i).widget()
+        for i in range(self.card.thumbnails_layout.count()):
+            widget = self.card.thumbnails_layout.itemAt(i).widget()
             if widget:
                 widget.setFixedSize(preview_size, preview_size)
 
@@ -606,7 +458,7 @@ class MainWindow(QMainWindow):
             more_label.setAlignment(Qt.AlignCenter)
             more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
             more_label.setObjectName("more_label")
-            self.thumbnails_layout.addWidget(more_label)
+            self.card.thumbnails_layout.addWidget(more_label)
 
     def add_thumbnail(self, filepath):
         thumbnail = QLabel()
@@ -627,11 +479,11 @@ class MainWindow(QMainWindow):
         # Save filepath as a property of the thumbnail for refresh overhead
         thumbnail.setProperty("filepath", filepath)
 
-        self.thumbnails_layout.addWidget(thumbnail)
+        self.card.thumbnails_layout.addWidget(thumbnail)
 
     def clear_thumbnails(self):
-        while self.thumbnails_layout.count():
-            item = self.thumbnails_layout.takeAt(0)
+        while self.card.thumbnails_layout.count():
+            item = self.card.thumbnails_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
@@ -754,8 +606,8 @@ class MainWindow(QMainWindow):
     def update_confidence_bar_visibility(self):
         show_bars = self.width() >= 1400
 
-        for i in range(self.results_layout.count()):
-            item = self.results_layout.itemAt(i)
+        for i in range(self.card.results_layout.count()):
+            item = self.card.results_layout.itemAt(i)
             if item and item.widget():
                 card = item.widget()
                 # Check if card has confidence attribute
@@ -808,7 +660,7 @@ class MainWindow(QMainWindow):
             images_layout = QHBoxLayout()
 
             original_container = QVBoxLayout()
-            original_label = QLabel(f"{self.get_text("original")} {os.path.basename(filepath)}")
+            original_label = QLabel(f"{self.get_text("original")}\n{os.path.basename(filepath)}")
             original_label.setAlignment(Qt.AlignCenter)
             original_label.setStyleSheet("font-weight: bold;")
             original_img = QLabel()
@@ -900,10 +752,10 @@ class MainWindow(QMainWindow):
             res.sort(key=lambda x: os.path.basename(x["filepath"]).lower(), reverse=True)
         elif index == 3:
         # Classname A-Z
-            res.sort(key=lambda x: os.path.basename(x["class_name"]).lower())
+            res.sort(key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower())
         elif index == 4:
         # Classname Z-A
-            res.sort(key=lambda x: os.path.basename(x["class_name"]).lower(), reverse=True)
+            res.sort(key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower(), reverse=True)
         elif index == 5:
         # Confidence ASC
             res.sort(key=lambda x: x["confidence"])
@@ -924,17 +776,17 @@ class MainWindow(QMainWindow):
                 pred=res["class_name"],
                 confidence=res["confidence"],
             )
-            self.results_layout.addWidget(card)
+            self.card.results_layout.addWidget(card)
             
-        self.results_layout.addStretch()
+        self.card.results_layout.addStretch()
         self.update_confidence_bar_visibility()
 
     def refresh_sort_combobox(self):
-        idx = self.sort_by.currentIndex()
+        idx = self.card.sort_by.currentIndex()
         
-        self.sort_by.blockSignals(True)
-        self.sort_by.clear()
-        self.sort_by.addItems([
+        self.card.sort_by.blockSignals(True)
+        self.card.sort_by.clear()
+        self.card.sort_by.addItems([
             self.get_text("sort_default"),
             self.get_text("sort_filename_az"),
             self.get_text("sort_filename_za"),
@@ -944,8 +796,8 @@ class MainWindow(QMainWindow):
             self.get_text("sort_conf_desc"),
         ])
         
-        self.sort_by.setCurrentIndex(idx)
-        self.blockSignals(False)
+        self.card.sort_by.setCurrentIndex(idx)
+        self.card.sort_by.blockSignals(False)
 
     def get_text(self, key, **kwargs):
         text = self.TEXTS[self.current_language].get(key)
@@ -958,8 +810,8 @@ class MainWindow(QMainWindow):
         """
         Clears results card.
         """
-        while self.results_layout.count():
-            item = self.results_layout.takeAt(0)
+        while self.card.results_layout.count():
+            item = self.card.results_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
             elif item.spacerItem():
