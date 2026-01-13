@@ -1,15 +1,18 @@
-import os
-from PyQt5.QtWidgets import QWidget, QScrollArea, QFileDialog, QComboBox, QPushButton, QLabel, QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import Qt, QStandardPaths
+from PyQt5.QtWidgets import QWidget, QScrollArea, QComboBox, QPushButton, QLabel, QHBoxLayout, QVBoxLayout
+from PyQt5.QtCore import Qt
+
+from TopBar import ItemDelegate
 
 class Card(QWidget):
-    BUTTON_WIDTH = 150
-    BUTTON_HEIGHT = 45
     
-    def __init__(self, parent=None):
+    def __init__(self, scale_manager,parent=None):
         super().__init__(parent)
         
         self.window = parent
+        self.scale_manager = scale_manager
+        self.BUTTON_WIDTH = self.scale_manager.scale_value(200)
+        self.BUTTON_HEIGHT = self.scale_manager.scale_value(60)
+    
         self.create_card()
         
     def create_card(self):
@@ -17,8 +20,11 @@ class Card(QWidget):
         self.setAttribute(Qt.WA_StyledBackground, True)
         
         self.card_layout = QHBoxLayout(self)
-        self.card_layout.setContentsMargins(40, 40, 40, 40)
-        self.card_layout.setSpacing(20)
+        self.card_layout.setContentsMargins(self.scale_manager.scale_value(40),
+            self.scale_manager.scale_value(40), self.scale_manager.scale_value(40),
+            self.scale_manager.scale_value(40)
+        )
+        self.card_layout.setSpacing(self.scale_manager.scale_value(20))
         
         self.create_left_column()
         self.create_right_column()
@@ -59,18 +65,18 @@ class Card(QWidget):
 
         preview_container_layout = QVBoxLayout(self.preview_container)
         preview_container_layout.setContentsMargins(0, 0, 0, 0)
-        preview_container_layout.setSpacing(10)
+        preview_container_layout.setSpacing(self.scale_manager.scale_value(10))
 
         self.file_name_label = QLabel("")
         
         image_row = QHBoxLayout()
         image_row.setAlignment(Qt.AlignLeft)
-        image_row.setSpacing(10)
+        image_row.setSpacing(self.scale_manager.scale_value(10))
 
         self.thumbnails_container = QWidget()
         self.thumbnails_layout = QHBoxLayout(self.thumbnails_container)
         self.thumbnails_layout.setContentsMargins(0, 0, 0, 0)
-        self.thumbnails_layout.setSpacing(10)
+        self.thumbnails_layout.setSpacing(self.scale_manager.scale_value(10))
         self.thumbnails_layout.setAlignment(Qt.AlignLeft)
 
         # Clear button
@@ -80,7 +86,7 @@ class Card(QWidget):
         self.clear_button.setEnabled(False)
 
         image_row.addWidget(self.thumbnails_container)
-        image_row.addSpacing(20)
+        image_row.addSpacing(self.scale_manager.scale_value(20))
         image_row.addWidget(self.clear_button, alignment=Qt.AlignBottom)
         image_row.addStretch()
 
@@ -105,7 +111,7 @@ class Card(QWidget):
         # Disclaimer
         disclaimer_layout = QHBoxLayout()
         disclaimer_layout.setAlignment(Qt.AlignLeft)
-        disclaimer_layout.setSpacing(5)
+        disclaimer_layout.setSpacing(self.scale_manager.scale_value(5))
 
         self.disclaimer_icon = QLabel("⚠️")
         self.disclaimer_icon.setAlignment(Qt.AlignTop)
@@ -125,7 +131,7 @@ class Card(QWidget):
         self.left_column.addLayout(buttons_layout)
         self.left_column.addWidget(self.preview_label)
         self.left_column.addWidget(self.preview_container)
-        self.left_column.addSpacing(20)
+        self.left_column.addSpacing(self.scale_manager.scale_value(20))
         self.left_column.addWidget(self.step2_label)
         self.left_column.addWidget(self.step2_desc)
         self.left_column.addLayout(predict_layout)
@@ -136,7 +142,6 @@ class Card(QWidget):
         # Right column inside the card
         self.right_column = QVBoxLayout()
         self.right_column.setAlignment(Qt.AlignTop)
-
 
         # Step 3
         self.step3_label = QLabel("Step 3")
@@ -149,7 +154,8 @@ class Card(QWidget):
         self.sort_label = QLabel("Sort by:")
         
         self.sort_by = QComboBox()
-        self.sort_by.setFixedSize(200, 40)
+        self.sort_by.setItemDelegate(ItemDelegate(height=self.scale_manager.scale_value(40)))
+        self.sort_by.setFixedSize(self.scale_manager.scale_value(200), self.scale_manager.scale_value(40))
         self.sort_by.setCursor(Qt.PointingHandCursor)
         self.sort_by.view().setCursor(Qt.PointingHandCursor)
         
@@ -162,12 +168,15 @@ class Card(QWidget):
         self.results_card.setWidgetResizable(True)
         self.results_card.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.results_card.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.results_card.setMinimumHeight(300)
+        self.results_card.setMinimumHeight(self.scale_manager.scale_value(300))
 
         self.results_container = QWidget()
         self.results_layout = QVBoxLayout(self.results_container)
-        self.results_layout.setContentsMargins(15, 15, 15, 15)
-        self.results_layout.setSpacing(10)
+        self.results_layout.setContentsMargins(self.scale_manager.scale_value(15),
+            self.scale_manager.scale_value(15), self.scale_manager.scale_value(15), 
+            self.scale_manager.scale_value(15)
+        )
+        self.results_layout.setSpacing(self.scale_manager.scale_value(10))
         self.results_layout.setAlignment(Qt.AlignTop)
 
         self.results_card.setWidget(self.results_container)

@@ -29,8 +29,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QLabel,
-    QComboBox,
-    QScrollArea,
     QProgressBar,
     QDialog,
 )
@@ -46,14 +44,16 @@ from ErrMsgDialog import ErrMsgDialog
 from TopBar import TopBar
 from Translator import Translator
 from Card import Card
+from ScaleManager import ScaleManager
 
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
-# TODO: split the file into smaller files
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.current_language = "EN"
+        self.scale_manager = ScaleManager()
         self.theme_manager = ThemesManager(self)
         self.translator = Translator(language=self.current_language, window=self)
         
@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
-        self.setMinimumSize(QSize(1280, 720))
+        self.setMinimumSize(QSize(self.scale_manager.scale_value(1920), self.scale_manager.scale_value(1080)))
 
         self.setAttribute(Qt.WA_StyledBackground, True)
 
@@ -79,13 +79,13 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(0)
 
         # Top bar
-        self.top_bar = TopBar()
+        self.top_bar = TopBar(scale_manager=self.scale_manager)
         self.top_bar.setContentsMargins(0, 0, 0, 50)
         self.top_bar.language_changed.connect(self.change_language)
         self.top_bar.theme_changed.connect(self.change_theme)
 
         # Main card
-        self.card = Card()
+        self.card = Card(scale_manager=self.scale_manager, parent=self)
         self.card.sort_by.addItems([
             self.get_text("sort_default"),
             self.get_text("sort_filename_az"),

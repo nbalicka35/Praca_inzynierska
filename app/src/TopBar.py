@@ -11,9 +11,13 @@ from PyQt5.QtCore import Qt, pyqtSignal
 
 
 class ItemDelegate(QStyledItemDelegate):
+    def __init__(self, height=30):
+        super().__init__()
+        self.item_height = height
+        
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index)
-        size.setHeight(30)
+        size.setHeight(self.item_height)
         return size 
 
 
@@ -21,23 +25,31 @@ class TopBar(QWidget):
     theme_changed = pyqtSignal(str)
     language_changed = pyqtSignal(str)
 
-    def __init__(self, theme="Light"):
+    def __init__(self, scale_manager, theme="Light"):
         super().__init__()
 
         self.theme = theme
-        self.setStyleSheet("font-size: 12px;")
+        self.scale_manager = scale_manager
+        
+        self.small_font = scale_manager.scale_value(16)
+        self.title_font = scale_manager.scale_value(44)
+        # TODO: implement scale manager
+        self.setStyleSheet(f"font-size: {self.small_font}px;")
 
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 10, 20, 10)
-        main_layout.setSpacing(5)
+        main_layout.setContentsMargins(self.scale_manager.scale_value(20),
+            self.scale_manager.scale_value(10), self.scale_manager.scale_value(20),
+            self.scale_manager.scale_value(10)
+        )
+        main_layout.setSpacing(self.scale_manager.scale_value(5))
 
         top_row = QHBoxLayout()
         top_row.addStretch()
 
         self.combobox_lang = QComboBox()
-        self.combobox_lang.setItemDelegate(ItemDelegate())
+        self.combobox_lang.setItemDelegate(ItemDelegate(height=scale_manager.scale_value(40)))
         self.combobox_lang.addItems(["EN", "PL"])
-        self.combobox_lang.setMinimumSize(40, 30)
+        self.combobox_lang.setFixedSize(self.scale_manager.scale_value(60), self.scale_manager.scale_value(35))
         self.combobox_lang.setCursor(Qt.PointingHandCursor)
         self.combobox_lang.view().setCursor(Qt.PointingHandCursor)
         self.combobox_lang.currentTextChanged.connect(self.change_lang)
@@ -51,10 +63,10 @@ class TopBar(QWidget):
         self.dark_theme.clicked.connect(self.set_dark_theme)
 
         for button in [self.light_theme, self.dark_theme]:
-            button.setMinimumSize(50, 30)
+            button.setFixedSize(self.scale_manager.scale_value(110), self.scale_manager.scale_value(35))
 
         top_row.addWidget(self.combobox_lang)
-        top_row.addSpacing(15)
+        top_row.addSpacing(self.scale_manager.scale_value(15))
         top_row.addWidget(self.dark_theme)
         top_row.addWidget(self.light_theme)
 
@@ -63,8 +75,8 @@ class TopBar(QWidget):
 
         self.app_name = QLabel("Neuron")
         self.app_name.setStyleSheet(
-            """
-            font-size: 36px;
+            f"""
+            font-size: {self.title_font}px;
             font-weight: 300;
             """
         )
@@ -119,19 +131,21 @@ class TopBar(QWidget):
             )
 
             self.combobox_lang.setStyleSheet(
-                """
-            QComboBox {
+            f"""
+            QComboBox {{
                 font-weight: Normal;
                 border: 1px solid #ccc;
                 padding: 5px 10px;
                 background: white;
-            }
-            QComboBox QAbstractItemView {
+                font-size: {self.small_font}px;
+            }}
+            QComboBox QAbstractItemView {{
                 background-color: white;
                 color: black;
                 selection-background-color: rgba(148, 211, 255, .72);
                 selection-color: black;
-            }
+                font-size: {self.small_font}px;
+            }}
             """
             )
 
@@ -166,20 +180,22 @@ class TopBar(QWidget):
             )
 
             self.combobox_lang.setStyleSheet(
-                """
-            QComboBox {
+            f"""
+            QComboBox {{
                 font-weight: Normal;
                 border: 1px solid #ccc;
                 padding: 5px 10px;
                 background: #376281;
                 color: #FFFAF2;
-            }
-            QComboBox QAbstractItemView {
+                font-size: {self.small_font}px;
+            }}
+            QComboBox QAbstractItemView {{
                 background-color: #1B2037;
                 color: #FFFAF2;
                 selection-background-color: #376281;
                 selection-color: #FFFAF2;
-            }
+                font-size: {self.small_font}px;
+            }}
             """
             )
 

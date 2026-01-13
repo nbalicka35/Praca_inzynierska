@@ -24,6 +24,7 @@ class ThemesManager:
     
     def __init__(self, window): 
         self.window=window
+        self.scale_manager = self.window.scale_manager
         self.current_theme="Light"
         
     def apply_theme(self, theme):
@@ -54,13 +55,16 @@ class ThemesManager:
 
         
     def _apply_button_style(self,colors):
+        text_size = self.scale_manager.scale_font(18)
+        border_radius = self.scale_manager.scale_value(10)
+        
         button_style = f"""
             QPushButton {{
                 background-color: {colors["button"]};
                 color: {colors["text"]};
                 border: 0px;
-                border-radius: 10px;
-                font-size: 12px;
+                border-radius: {border_radius}px;
+                font-size: {text_size}px;
             }}
             QPushButton:hover {{
                 background-color: {colors["button-hover"]};
@@ -109,23 +113,42 @@ class ThemesManager:
         )
         
     def _apply_labels_style(self, colors):
-        self.window.card.step1_label.setStyleSheet(f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};")
-        self.window.card.step1_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        font_large = self.scale_manager.scale_font(20)
+        font_medium = self.scale_manager.scale_font(18)
+        font_small = self.scale_manager.scale_font(14)
         
-        self.window.card.preview_label.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
-        self.window.card.file_name_label.setStyleSheet(f"background-color: {colors["card"]}; font-size: 12px; color: {colors["text"]};")
+        self.window.card.step1_label.setStyleSheet(f"font-weight: bold; font-size: {font_large}px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step1_desc.setStyleSheet(f"font-size: {font_medium}px; color: {colors["text"]}; background-color: {colors["card"]};")
+        
+        self.window.card.preview_label.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]}; font-size: {font_small}px;")
+        self.window.card.file_name_label.setStyleSheet(f"background-color: {colors["card"]}; font-size: {font_small}px; color: {colors["text"]};")
         
         self.window.card.step2_label.setStyleSheet(
-            f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};"
+            f"font-weight: bold; font-size: {font_large}px; color: {colors["text"]}; background-color: {colors["card"]};"
         )
-        self.window.card.step2_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step2_desc.setStyleSheet(f"font-size: {font_medium}px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.card.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]};")
-        self.window.card.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]};")
+        self.window.card.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]}; font-size: {font_medium}px;")
+        self.window.card.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]}; font-size: {font_medium}px;")
         
         self.window.card.step3_label.setStyleSheet(
-            f"font-weight: bold; font-size: 18px; color: {colors["text"]}; background-color: {colors["card"]};"
+            f"font-weight: bold; font-size: {font_large}px; color: {colors["text"]}; background-color: {colors["card"]};"
         )
-        self.window.card.step3_desc.setStyleSheet(f"font-size: 16px; color: {colors["text"]}; background-color: {colors["card"]};")
+        self.window.card.step3_desc.setStyleSheet(f"font-size: {font_medium}px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.card.sort_label.setStyleSheet(f"background-color: {colors["card"]};")
+        self.window.card.sort_label.setStyleSheet(f"background-color: {colors["card"]}; font-size: {font_medium}px;")
+        
+        self.window.card.sort_by.setStyleSheet(
+            f"""
+                QComboBox {{
+                    background-color: {colors["background"]};
+                    padding: 5px 10px;
+                    font-size: {font_medium}px;
+                }}
+                QComboBox QAbstractItemView {{
+                    background-color: {colors["background"]};
+                    color: {colors['text']};
+                    font-size: {font_medium}px;
+                }}
+            """
+        )
