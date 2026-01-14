@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
-        self.setMinimumSize(QSize(self.scale_manager.scale_value(1920), self.scale_manager.scale_value(1080)))
+        self.setMinimumSize(QSize(self.scale_manager.scale_value(1400), self.scale_manager.scale_value(840)))
 
         self.setAttribute(Qt.WA_StyledBackground, True)
 
@@ -353,6 +353,7 @@ class MainWindow(QMainWindow):
         # Get 15% of current window size
         window_height = self.height()
         preview_size = int(window_height * 0.15)
+        print(f"preview size: {preview_size}\nreturn:{max(80, min(preview_size, 150))}")
         
         # Return value between 80 and 150
         return max(80, min(preview_size, 150))
@@ -393,10 +394,10 @@ class MainWindow(QMainWindow):
         if len(filepaths) > number_of_previews:
             more_label = QLabel(f"+{len(filepaths) - number_of_previews}")
             more_label.setStyleSheet(
-                """
+                f"""
                 background-color: rgba(148, 211, 255, .3);
                 border-radius: 10px;
-                font-size: 16px;
+                font-size: {self.scale_manager.scale_font(16)}px;
                 font-weight: bold;
             """
             )
@@ -466,31 +467,31 @@ class MainWindow(QMainWindow):
             QWidget {{
                 background-color: {card_color};
                 border-radius: 15px;
-                font-size: 14px;
+                font-size: {self.scale_manager.scale_font(16)}px;
             }}
             """
         )
-        card.setFixedHeight(50)
+        card.setFixedHeight(self.scale_manager.scale_value(60))
 
         layout = QHBoxLayout(card)
-        layout.setContentsMargins(10, 5, 10, 5)
-        layout.setSpacing(10)
+        layout.setContentsMargins(self.scale_manager.scale_value(10), self.scale_manager.scale_value(5), self.scale_manager.scale_value(10), self.scale_manager.scale_value(5))
+        layout.setSpacing(self.scale_manager.scale_value(10))
 
         name_label = QLabel(filename)
         name_label.setStyleSheet(f"background-color: transparent; border: none;")
-        name_label.setFixedWidth(120)
+        name_label.setFixedWidth(self.scale_manager.scale_value(120))
         name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         class_label = QLabel(self.get_text(pred))
         class_label.setStyleSheet(
             f"background-color: transparent; border: none; font-weight: bold;"
         )
-        class_label.setFixedWidth(140)
+        class_label.setFixedWidth(self.scale_manager.scale_value(160))
         class_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Confidence bar
         confidence_bar = QProgressBar(card)
-        confidence_bar.setFixedSize(120, 15)
+        confidence_bar.setFixedSize(self.scale_manager.scale_value(120), self.scale_manager.scale_value(15))
         confidence_bar.setMinimum(0)
         confidence_bar.setMaximum(100)
         confidence_bar.setValue(int(confidence * 100))
@@ -508,29 +509,30 @@ class MainWindow(QMainWindow):
             }
         """
         )
-        confidence_bar.setVisible(self.width() >= 1400)
+        confidence_bar.setVisible(self.width() >= self.scale_manager.scale_value(1600))
+        print(f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(1600)}")
 
         conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("confidence")}")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
-        conf_label.setFixedWidth(130)
+        conf_label.setFixedWidth(self.scale_manager.scale_value(140))
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         details_button = QPushButton("🔍")
-        details_button.setFixedSize(30, 30)
+        details_button.setFixedSize(self.scale_manager.scale_value(40), self.scale_manager.scale_value(40))
         details_button.setCursor(Qt.PointingHandCursor)
         hint = "Show GradCAM visualization" if self.current_language=="EN" else "Pokaż mapę ciepła GradCAM"
         details_button.setToolTip(hint)
         details_button.setStyleSheet(
-            """
-            QPushButton {
+            f"""
+            QPushButton {{
                 background: transparent;
                 border: none;
-                font-size: 16px;
-            }
-            QPushButton:hover {
+                font-size: {self.scale_manager.scale_font(24)}px;
+            }}
+            QPushButton:hover {{
                 background: rgba(255, 255, 255, 0.3);
                 border-radius: 15px;
-            }
+            }}
         """
         )
         details_button.clicked.connect(
@@ -549,7 +551,7 @@ class MainWindow(QMainWindow):
         return card
 
     def update_confidence_bar_visibility(self):
-        show_bars = self.width() >= 1400
+        show_bars = self.width() > self.scale_manager.scale_value(1600)
 
         for i in range(self.card.results_layout.count()):
             item = self.card.results_layout.itemAt(i)
@@ -653,7 +655,7 @@ class MainWindow(QMainWindow):
                 f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["confidence"]*100:.2f}%)"
             )
             info_label.setAlignment(Qt.AlignCenter)
-            info_label.setStyleSheet("font-size: 16px; margin-top: 10px;")
+            info_label.setStyleSheet(f"font-size: {self.scale_manager.scale_font(18)}px; margin-top: 10px;")
 
             gradcam_layout.addLayout(images_layout)
             gradcam_layout.addWidget(info_label)

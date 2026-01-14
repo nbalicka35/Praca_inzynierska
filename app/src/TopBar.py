@@ -31,8 +31,8 @@ class TopBar(QWidget):
         self.theme = theme
         self.scale_manager = scale_manager
         
-        self.small_font = scale_manager.scale_value(16)
-        self.title_font = scale_manager.scale_value(44)
+        self.small_font = scale_manager.scale_font(16)
+        self.title_font = scale_manager.scale_font(44)
         # TODO: implement scale manager
         self.setStyleSheet(f"font-size: {self.small_font}px;")
 

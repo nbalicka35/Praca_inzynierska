@@ -36,6 +36,7 @@ class ThemesManager:
         self._apply_labels_style(colors=colors)
         
     def _apply_main_window_style(self, colors):
+        font_size = self.scale_manager.scale_font(18)
         self.window.setStyleSheet(
         f"background-color: {colors["background"]}; color: {colors["text"]}"
         )
@@ -44,6 +45,7 @@ class ThemesManager:
             #card {{
                 background-color: {colors["card"]};
                 color: {colors["text"]};
+                font-size: {font_size}px;
                 border-top-left-radius: 20px;
                 border-top-right-radius: 20px;
             }}
@@ -128,8 +130,8 @@ class ThemesManager:
         )
         self.window.card.step2_desc.setStyleSheet(f"font-size: {font_medium}px; color: {colors["text"]}; background-color: {colors["card"]};")
         
-        self.window.card.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]}; font-size: {font_medium}px;")
-        self.window.card.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]}; font-size: {font_medium}px;")
+        self.window.card.disclaimer_icon.setStyleSheet(f"background-color: {colors["card"]}; font-size: {font_small}px;")
+        self.window.card.disclaimer_text.setStyleSheet(f"background-color: {colors["card"]}; color: {colors["text"]}; font-size: {font_small}px;")
         
         self.window.card.step3_label.setStyleSheet(
             f"font-weight: bold; font-size: {font_large}px; color: {colors["text"]}; background-color: {colors["card"]};"
