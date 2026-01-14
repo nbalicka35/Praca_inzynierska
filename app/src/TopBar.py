@@ -33,7 +33,6 @@ class TopBar(QWidget):
         
         self.small_font = scale_manager.scale_font(16)
         self.title_font = scale_manager.scale_font(44)
-        # TODO: implement scale manager
         self.setStyleSheet(f"font-size: {self.small_font}px;")
 
         main_layout = QVBoxLayout(self)
@@ -100,33 +99,34 @@ class TopBar(QWidget):
         self.theme_changed.emit("Dark") 
 
     def update_theme(self):
+        border_radius = self.scale_manager.scale_value(10)
         if self.theme.lower() == "light":
             self.light_theme.setChecked(True)
             self.light_theme.setEnabled(False)
             self.light_theme.setStyleSheet(
-                """
-                QPushButton {
-                    border-radius: 10px;
+                f"""
+                QPushButton {{
+                    border-radius: {border_radius}px;
                     padding: 5px 10px;
                     background-color: white;
                     color: black;
-                }
+                }}
                 """
             )
 
             self.dark_theme.setChecked(False)
             self.dark_theme.setEnabled(True)
             self.dark_theme.setStyleSheet(
-                """
-                QPushButton {
-                    border-radius: 10px;
+                f"""
+                QPushButton {{
+                    border-radius: {border_radius}px;
                     padding: 5px 10px;
                     background: transparent;
                     color: black;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: rgba(255, 255, 255, 0.5);
-                }
+                }}
                 """
             )
 
@@ -153,29 +153,29 @@ class TopBar(QWidget):
             self.dark_theme.setChecked(True)
             self.dark_theme.setEnabled(False)
             self.dark_theme.setStyleSheet(
-                """
-                QPushButton {
-                    border-radius: 10px;
+                f"""
+                QPushButton {{
+                    border-radius: {border_radius}px;
                     padding: 5px 10px;
                     background-color: #376281;
                     color: #FFFAF2;
-                }
+                }}
                 """
             )
 
             self.light_theme.setChecked(False)
             self.light_theme.setEnabled(True)
             self.light_theme.setStyleSheet(
-                """
-                QPushButton {
-                    border-radius: 10px;
+                f"""
+                QPushButton {{
+                    border-radius: {border_radius}px;
                     padding: 5px 10px;
                     background: transparent;
                     color: #FFFAF2;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: rgba(255, 255, 255, 0.2);
-                }
+                }}
                 """
             )
 

@@ -56,7 +56,7 @@ class BrainTumorClassifier:
 
         return {
             "class_name": self.classes[pred_idx],
-            "confidence": confidence,
+            "probability": confidence,
         }
 
     def predict_batch(self, img_paths):
@@ -114,7 +114,7 @@ class BrainTumorClassifier:
 
         return {
             "class_index": class_index,
-            "confidence": confidence,
+            "probability": confidence,
             "heatmap": heatmap_colored,
             "superimposed": superimposed,
         }

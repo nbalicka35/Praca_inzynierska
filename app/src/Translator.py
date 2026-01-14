@@ -1,9 +1,11 @@
+import os
+
 class Translator:
     TEXTS = {
         "EN": {
             "open_file": "Open File",
             "select_folder": "Select Directory",
-            "confidence": "confidence",
+            "probability": "probability",
             "original": "Original",
             "heatmap": "GradCAM Heatmap",
             "overlay": "Overlay",
@@ -20,8 +22,8 @@ class Translator:
             "sort_filename_za": "Filename Z-A",
             "sort_class_az": "Class A-Z",
             "sort_class_za": "Class Z-A",
-            "sort_conf_asc": "Confidence ⬆️",
-            "sort_conf_desc": "Confidence ⬇️",
+            "sort_prob_asc": "Probability ⬆️",
+            "sort_prob_desc": "Probability ⬇️",
             "meningioma_tumor": "Meningioma Tumor",
             "glioma_tumor": "Glioma Tumor",
             "pituitary_tumor": "Pituitary Tumor",
@@ -33,7 +35,7 @@ class Translator:
         "PL": {
             "open_file": "Wybierz plik",
             "select_folder": "Wybierz folder",
-            "confidence": "pewności",
+            "probability": "prawdopodobieństwa",
             "original": "Oryginał",
             "heatmap": "Mapa ciepła GradCAM",
             "overlay": "Nałożenie",
@@ -50,8 +52,8 @@ class Translator:
             "sort_filename_za": "Nazwa pliku Z-A",
             "sort_class_az": "Klasa A-Z",
             "sort_class_za": "Klasa Z-A",
-            "sort_conf_asc": "Pewność ⬆️",
-            "sort_conf_desc": "Pewność ⬇️",
+            "sort_prob_asc": "Prawdopodobieństwo ⬆️",
+            "sort_prob_desc": "Prawdopodobieństwo ⬇️",
             "meningioma_tumor": "Oponiak",
             "glioma_tumor": "Glejak",
             "pituitary_tumor": "Guz Przysadki",
@@ -89,6 +91,14 @@ class Translator:
         self.current_window.card.step1_desc.setText(
             "Wybierz plik(i) JPG lub ścieżkę z obrazami"
         )
+        
+        if self.current_window.selected_file is not None:
+            self.current_window.card.file_name_label.setText(self.get_text("selected"))
+        elif len(self.current_window.selected_files) > 0:
+            self.current_window.card.file_name_label.setText(
+                self.get_text("selected_images", count = len(self.current_window.selected_files),
+                folder = os.path.basename(self.current_window.selected_directory))
+            )
 
         self.current_window.card.file_button.setText("Wybierz plik(i)")
         self.current_window.card.dir_button.setText("Wybierz folder")
@@ -119,9 +129,17 @@ class Translator:
     def set_english(self):
         print("set_english() executing")
         self.current_window.card.step1_label.setText("Step 1")
-        self.current_window.card.step1_desc.setText("Select .jpg file or directory")
+        self.current_window.card.step1_desc.setText("Select JPG file(s) or directory")
+        
+        if self.current_window.selected_file is not None:
+            self.current_window.card.file_name_label.setText(self.get_text("selected"))
+        elif len(self.current_window.selected_files) > 0:
+            self.current_window.card.file_name_label.setText(
+                self.get_text("selected_images", count = len(self.current_window.selected_files),
+                folder = os.path.basename(self.current_window.selected_directory))
+            )
 
-        self.current_window.card.file_button.setText("Choose file")
+        self.current_window.card.file_button.setText("Choose file(s)")
         self.current_window.card.dir_button.setText("Choose directory")
 
         self.current_window.card.preview_label.setText(
@@ -130,7 +148,7 @@ class Translator:
         self.current_window.card.clear_button.setText("Clear")
 
         self.current_window.card.step2_label.setText("Step 2")
-        self.current_window.card.step2_desc.setText("Examine photo(s)")
+        self.current_window.card.step2_desc.setText("Examine image(s)")
 
         self.current_window.card.predict_button.setText("Predict")
 

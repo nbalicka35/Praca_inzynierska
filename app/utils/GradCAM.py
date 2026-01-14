@@ -49,7 +49,7 @@ def generate_gradcam(model, img_tensor, original_img, device):
 
     return {
         "class_index": class_index,
-        "confidence": confidence,
+        "probability": confidence,
         "heatmap": heatmap_colored,
         "superimposed": superimposed,
     }

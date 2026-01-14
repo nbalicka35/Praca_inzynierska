@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
-        self.setMinimumSize(QSize(self.scale_manager.scale_value(1400), self.scale_manager.scale_value(840)))
+        self.setMinimumSize(QSize(self.scale_manager.scale_value(1450), self.scale_manager.scale_value(840)))
 
         self.setAttribute(Qt.WA_StyledBackground, True)
 
@@ -92,8 +92,8 @@ class MainWindow(QMainWindow):
             self.get_text("sort_filename_za"),
             self.get_text("sort_class_az"),
             self.get_text("sort_class_za"),
-            self.get_text("sort_conf_asc"),
-            self.get_text("sort_conf_desc"),
+            self.get_text("sort_prob_asc"),
+            self.get_text("sort_prob_desc"),
         ])
         
         self.card.file_button.clicked.connect(self.open_file)
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
             self.selected_files = filenames
             
             self.card.file_name_label.setText(
-                f"{self.get_text('selected')}: {len(filenames)} {self.get_text('images')}"
+                f"{self.get_text("selected")}: {len(filenames)} {self.get_text('images')}"
             )
             
             # Display up to 3 thumbnails
@@ -301,7 +301,7 @@ class MainWindow(QMainWindow):
             filename=os.path.basename(self.selected_file),
             filepath=self.selected_file,
             pred=res["class_name"],
-            confidence=res["confidence"],
+            confidence=res["probability"],
         )
         self.card.results_layout.addWidget(card)
         self.card.results_layout.addStretch()
@@ -317,7 +317,7 @@ class MainWindow(QMainWindow):
                 filename=os.path.basename(result["filepath"]),
                 filepath=result["filepath"],
                 pred=result["class_name"],
-                confidence=result["confidence"],
+                confidence=result["probability"],
             )
             self.card.results_layout.addWidget(card)
 
@@ -512,9 +512,9 @@ class MainWindow(QMainWindow):
         confidence_bar.setVisible(self.width() >= self.scale_manager.scale_value(1600))
         print(f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(1600)}")
 
-        conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("confidence")}")
+        conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("probability")}")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
-        conf_label.setFixedWidth(self.scale_manager.scale_value(140))
+        conf_label.setFixedWidth(self.scale_manager.scale_value(220))
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         details_button = QPushButton("🔍")
@@ -652,7 +652,7 @@ class MainWindow(QMainWindow):
             images_layout.addLayout(heatmap_container)
             images_layout.addLayout(superimposed_container)
             info_label = QLabel(
-                f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["confidence"]*100:.2f}%)"
+                f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["probability"]*100:.2f}%)"
             )
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setStyleSheet(f"font-size: {self.scale_manager.scale_font(18)}px; margin-top: 10px;")
@@ -706,10 +706,10 @@ class MainWindow(QMainWindow):
             res.sort(key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower(), reverse=True)
         elif index == 5:
         # Confidence ASC
-            res.sort(key=lambda x: x["confidence"])
+            res.sort(key=lambda x: x["probability"])
         elif index == 6:
         # Confidence DESC
-            res.sort(key=lambda x: x["confidence"], reverse=True)
+            res.sort(key=lambda x: x["probability"], reverse=True)
 
         self.sorted_results = res
         self.rebuild_result_card()
@@ -722,7 +722,7 @@ class MainWindow(QMainWindow):
                 filepath=res["filepath"],
                 filename=os.path.basename(res["filepath"]),
                 pred=res["class_name"],
-                confidence=res["confidence"],
+                confidence=res["probability"],
             )
             self.card.results_layout.addWidget(card)
             
@@ -740,8 +740,8 @@ class MainWindow(QMainWindow):
             self.get_text("sort_filename_za"),
             self.get_text("sort_class_az"),
             self.get_text("sort_class_za"),
-            self.get_text("sort_conf_asc"),
-            self.get_text("sort_conf_desc"),
+            self.get_text("sort_prob_asc"),
+            self.get_text("sort_prob_desc"),
         ])
         
         self.card.sort_by.setCurrentIndex(idx)
