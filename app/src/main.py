@@ -45,6 +45,7 @@ from TopBar import TopBar
 from Translator import Translator
 from Card import Card
 from ScaleManager import ScaleManager
+from SettingsManager import SettingsManager
 
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
@@ -52,10 +53,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.current_language = "EN"
         self.scale_manager = ScaleManager()
-        self.theme_manager = ThemesManager(self)
+        self.settings_manager = SettingsManager()
+        
+        self.current_language = self.settings_manager.get_language()
         self.translator = Translator(language=self.current_language, window=self)
+        
+        saved_theme = self.settings_manager.get_theme()
+        self.theme_manager = ThemesManager(self, theme=saved_theme)
         
         self.selected_file = None
         self.selected_files = []
@@ -79,8 +84,12 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(0)
 
         # Top bar
-        self.top_bar = TopBar(scale_manager=self.scale_manager)
+        self.top_bar = TopBar(scale_manager=self.scale_manager, theme=saved_theme)
         self.top_bar.setContentsMargins(0, 0, 0, 50)
+        
+        lang_index = 0 if self.current_language == "EN" else 1
+        self.top_bar.combobox_lang.setCurrentIndex(lang_index)
+        
         self.top_bar.language_changed.connect(self.change_language)
         self.top_bar.theme_changed.connect(self.change_theme)
 
@@ -278,6 +287,7 @@ class MainWindow(QMainWindow):
 
         finally:
             label = "Predict" if self.current_language=="EN" else "Uruchom"
+            self.card.sort_by.setCurrentIndex(0)
             self.card.predict_button.setText(label)
             self.card.predict_button.setEnabled(True)
             self.card.clear_button.setEnabled(True)
@@ -324,7 +334,13 @@ class MainWindow(QMainWindow):
         self.card.results_layout.addStretch()
 
     def change_theme(self, theme):
+        # Save current theme setting
+        self.settings_manager.set_theme(theme=theme)
+        
+        # Apply UI theme
         self.theme_manager.apply_theme(theme)
+        
+        # Refresh results
         self.refresh_results()
 
     def clear_selection(self):
@@ -347,6 +363,8 @@ class MainWindow(QMainWindow):
         self.card.clear_button.setEnabled(False)
         
         self.card.sort_by.setCurrentIndex(0)
+        
+        self.clear_results()
         print("Selection cleared.")
 
     def get_preview_size(self):
@@ -679,9 +697,15 @@ class MainWindow(QMainWindow):
     def change_language(self, language):
         print(f"change_language called with: {language}")
         self.current_language = language
+        
+        # Save current setting
+        self.settings_manager.set_language(language=language)
+        
+        # Translate the UI
         self.translator = Translator(window=self, language=self.current_language)
         self.translator.apply()
         
+        # Refresh UI elements
         self.refresh_results()
         self.refresh_sort_combobox()
         

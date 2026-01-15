@@ -22,10 +22,10 @@ class ThemesManager:
         }
     }
     
-    def __init__(self, window): 
+    def __init__(self, window, theme): 
         self.window=window
         self.scale_manager = self.window.scale_manager
-        self.current_theme="Light"
+        self.current_theme = theme
         
     def apply_theme(self, theme):
         self.current_theme = theme
