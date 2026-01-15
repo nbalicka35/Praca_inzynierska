@@ -93,12 +93,15 @@ class Translator:
         )
         
         if self.current_window.selected_file is not None:
-            self.current_window.card.file_name_label.setText(self.get_text("selected"))
+            self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}")
         elif len(self.current_window.selected_files) > 0:
-            self.current_window.card.file_name_label.setText(
-                self.get_text("selected_images", count = len(self.current_window.selected_files),
-                folder = os.path.basename(self.current_window.selected_directory))
-            )
+            if self.current_window.selected_directory is not None:
+                self.current_window.card.file_name_label.setText(
+                    self.get_text("selected_images", count = len(self.current_window.selected_files),
+                    folder = os.path.basename(self.current_window.selected_directory))
+                )
+            else:
+                self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}")
 
         self.current_window.card.file_button.setText("Wybierz plik(i)")
         self.current_window.card.dir_button.setText("Wybierz folder")
@@ -132,12 +135,16 @@ class Translator:
         self.current_window.card.step1_desc.setText("Select JPG file(s) or directory")
         
         if self.current_window.selected_file is not None:
-            self.current_window.card.file_name_label.setText(self.get_text("selected"))
+            self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}")
         elif len(self.current_window.selected_files) > 0:
-            self.current_window.card.file_name_label.setText(
-                self.get_text("selected_images", count = len(self.current_window.selected_files),
-                folder = os.path.basename(self.current_window.selected_directory))
-            )
+            if self.current_window.selected_directory is not None:
+                self.current_window.card.file_name_label.setText(
+                    self.get_text("selected_images", count = len(self.current_window.selected_files),
+                    folder = os.path.basename(self.current_window.selected_directory))
+                )
+            else:
+                self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}")
+
 
         self.current_window.card.file_button.setText("Choose file(s)")
         self.current_window.card.dir_button.setText("Choose directory")

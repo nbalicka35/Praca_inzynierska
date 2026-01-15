@@ -271,6 +271,7 @@ class MainWindow(QMainWindow):
         try:
             if self.selected_file:
                 res = self.classifier.predict(self.selected_file)
+                res["filepath"] = self.selected_file
                 self.show_single_res(res)
                 self.result_type = "single"
 
@@ -308,7 +309,7 @@ class MainWindow(QMainWindow):
         self.clear_results()
 
         card = self.create_res_card(
-            filename=os.path.basename(self.selected_file),
+            filename=os.path.basename(res["filepath"]),
             filepath=self.selected_file,
             pred=res["class_name"],
             confidence=res["probability"],
@@ -741,6 +742,9 @@ class MainWindow(QMainWindow):
     def rebuild_result_card(self):
         self.clear_results()
         
+        if self.sorted_results is None:
+            return
+        
         for res in self.sorted_results:
             card = self.create_res_card(
                 filepath=res["filepath"],
@@ -778,6 +782,10 @@ class MainWindow(QMainWindow):
         """
         Clears results card.
         """
+        self.last_results = None
+        self.result_type = None
+        self.sorted_results = None
+        
         while self.card.results_layout.count():
             item = self.card.results_layout.takeAt(0)
             if item.widget():
