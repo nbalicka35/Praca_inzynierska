@@ -24,3 +24,19 @@ class SettingsManager:
     def set_theme(self, theme):
         """Saves chosen theme"""
         self.settings.setValue("theme", theme)
+        
+    def get_window_size(self):
+        """Returns window's size"""
+        return self.settings.value("window_size")
+    
+    def set_window_size(self, size):
+        """Sets window's size"""
+        self.settings.setValue("window_size", size)
+        
+    def get_window_position(self):
+        """Returns window's position on the screen"""
+        return self.settings.value("window_position")
+    
+    def set_window_position(self, position):
+        """Sets window's position on the screen"""
+        self.settings.setValue("window_position", position)

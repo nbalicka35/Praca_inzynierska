@@ -77,6 +77,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Neuron Desktop App")
         self.setMinimumSize(QSize(self.scale_manager.scale_value(1450), self.scale_manager.scale_value(840)))
 
+        saved_size = self.settings_manager.get_window_size()
+        if saved_size:
+            self.resize(saved_size)
+        
+        saved_position = self.settings_manager.get_window_position()
+        if saved_position:
+            self.move(saved_position)
+
         self.setAttribute(Qt.WA_StyledBackground, True)
 
         main_layout = QVBoxLayout()
@@ -792,6 +800,13 @@ class MainWindow(QMainWindow):
                 item.widget().deleteLater()
             elif item.spacerItem():
                 pass
+            
+    def closeEvent(self, event):
+        """Save window size and position before closing the app"""
+        self.settings_manager.set_window_size(self.size())
+        self.settings_manager.set_window_position(self.pos())
+        
+        event.accept()
 
 
 app = QApplication([])
