@@ -77,14 +77,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Neuron Desktop App")
         self.setMinimumSize(QSize(self.scale_manager.scale_value(1450), self.scale_manager.scale_value(840)))
 
-        saved_size = self.settings_manager.get_window_size()
-        if saved_size:
-            self.resize(saved_size)
-        
-        saved_position = self.settings_manager.get_window_position()
-        if saved_position:
-            self.move(saved_position)
-
         self.setAttribute(Qt.WA_StyledBackground, True)
 
         main_layout = QVBoxLayout()
@@ -134,6 +126,18 @@ class MainWindow(QMainWindow):
         
         self.theme_manager.apply_theme(theme=self.theme_manager.current_theme)
         self.translator.apply()
+        
+        saved_state = self.settings_manager.get_window_state()
+        if saved_state == "maximized":
+            self.showMaximized()
+        else:
+            saved_size = self.settings_manager.get_window_size()
+            if saved_size:
+                self.resize(saved_size)
+            
+            saved_position = self.settings_manager.get_window_position()
+            if saved_position:
+                self.move(saved_position)
         
         self.setCentralWidget(central_widget)
 
@@ -803,8 +807,12 @@ class MainWindow(QMainWindow):
             
     def closeEvent(self, event):
         """Save window size and position before closing the app"""
-        self.settings_manager.set_window_size(self.size())
-        self.settings_manager.set_window_position(self.pos())
+        if self.isMaximized():
+            self.settings_manager.set_window_state("maximized")
+        else:
+            self.settings_manager.set_window_state("normal")
+            self.settings_manager.set_window_size(self.size())
+            self.settings_manager.set_window_position(self.pos())
         
         event.accept()
 

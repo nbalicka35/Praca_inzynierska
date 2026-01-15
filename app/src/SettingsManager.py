@@ -40,3 +40,11 @@ class SettingsManager:
     def set_window_position(self, position):
         """Sets window's position on the screen"""
         self.settings.setValue("window_position", position)
+        
+    def get_window_state(self):
+        """Returns window saved state (maximized/normal)"""
+        return self.settings.value("window_state", "normal")
+    
+    def set_window_state(self, state):
+        """Sets window state (maximized/normal)"""
+        return self.settings.setValue("window_state", state)
