@@ -1,49 +1,60 @@
-from PyQt5.QtWidgets import QWidget, QScrollArea, QComboBox, QPushButton, QLabel, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import (
+    QWidget,
+    QScrollArea,
+    QComboBox,
+    QPushButton,
+    QLabel,
+    QHBoxLayout,
+    QVBoxLayout,
+)
 from PyQt5.QtCore import Qt
 
 from TopBar import ItemDelegate
 
+
 class Card(QWidget):
-    
-    def __init__(self, scale_manager,parent=None):
+
+    def __init__(self, scale_manager, parent=None):
         super().__init__(parent)
-        
+
         self.window = parent
         self.scale_manager = scale_manager
         self.BUTTON_WIDTH = self.scale_manager.scale_value(200)
         self.BUTTON_HEIGHT = self.scale_manager.scale_value(60)
-    
+
         self.create_card()
-        
+
     def create_card(self):
         self.setObjectName("card")
         self.setAttribute(Qt.WA_StyledBackground, True)
-        
+
         self.card_layout = QHBoxLayout(self)
-        self.card_layout.setContentsMargins(self.scale_manager.scale_value(40),
-            self.scale_manager.scale_value(40), self.scale_manager.scale_value(40),
-            self.scale_manager.scale_value(40)
+        self.card_layout.setContentsMargins(
+            self.scale_manager.scale_value(40),
+            self.scale_manager.scale_value(40),
+            self.scale_manager.scale_value(40),
+            self.scale_manager.scale_value(40),
         )
         self.card_layout.setSpacing(self.scale_manager.scale_value(20))
-        
+
         self.create_left_column()
         self.create_right_column()
-        
+
         # Add columns to the card
         self.card_layout.addLayout(self.left_column, 1)
         self.card_layout.addLayout(self.right_column, 1)
-        
+
     def create_left_column(self):
         # Left column inside the card
         self.left_column = QVBoxLayout()
         self.left_column.setAlignment(Qt.AlignTop)
-           
+
         # Step 1
         self.step1_label = QLabel("Step 1")
         self.step1_desc = QLabel("Select JPG file(s) or directory")
-        
+
         buttons_layout = QHBoxLayout()
-        
+
         self.file_button = QPushButton("Choose file(s)")
         self.file_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.file_button.setCursor(Qt.PointingHandCursor)
@@ -55,7 +66,7 @@ class Card(QWidget):
         buttons_layout.addWidget(self.file_button)
         buttons_layout.addWidget(self.dir_button)
         buttons_layout.addStretch()
-        
+
         # Image(s) preview section
         self.preview_label = QLabel("Preview of selected image(s) will appear below")
 
@@ -68,7 +79,7 @@ class Card(QWidget):
         preview_container_layout.setSpacing(self.scale_manager.scale_value(10))
 
         self.file_name_label = QLabel("")
-        
+
         image_row = QHBoxLayout()
         image_row.setAlignment(Qt.AlignLeft)
         image_row.setSpacing(self.scale_manager.scale_value(10))
@@ -99,12 +110,12 @@ class Card(QWidget):
 
         # Predict button
         predict_layout = QHBoxLayout()
-        
+
         self.predict_button = QPushButton("Predict")
         self.predict_button.setEnabled(False)
         self.predict_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.predict_button.setCursor(Qt.PointingHandCursor)
-        
+
         predict_layout.addWidget(self.predict_button)
         predict_layout.addStretch()
 
@@ -137,7 +148,7 @@ class Card(QWidget):
         self.left_column.addLayout(predict_layout)
         self.left_column.addStretch()
         self.left_column.addLayout(disclaimer_layout)
-    
+
     def create_right_column(self):
         # Right column inside the card
         self.right_column = QVBoxLayout()
@@ -152,16 +163,20 @@ class Card(QWidget):
 
         # Sort options
         self.sort_label = QLabel("Sort by:")
-        
+
         self.sort_by = QComboBox()
-        self.sort_by.setItemDelegate(ItemDelegate(height=self.scale_manager.scale_value(40)))
-        self.sort_by.setFixedSize(self.scale_manager.scale_value(200), self.scale_manager.scale_value(40))
+        self.sort_by.setItemDelegate(
+            ItemDelegate(height=self.scale_manager.scale_value(40))
+        )
+        self.sort_by.setFixedSize(
+            self.scale_manager.scale_value(200), self.scale_manager.scale_value(50)
+        )
         self.sort_by.setCursor(Qt.PointingHandCursor)
         self.sort_by.view().setCursor(Qt.PointingHandCursor)
-        
+
         sort_layout.addWidget(self.sort_label)
         sort_layout.addWidget(self.sort_by)
-        
+
         # Result(s) panel
         self.results_card = QScrollArea()
         self.results_card.setObjectName("results_card")
@@ -172,9 +187,11 @@ class Card(QWidget):
 
         self.results_container = QWidget()
         self.results_layout = QVBoxLayout(self.results_container)
-        self.results_layout.setContentsMargins(self.scale_manager.scale_value(15),
-            self.scale_manager.scale_value(15), self.scale_manager.scale_value(15), 
-            self.scale_manager.scale_value(15)
+        self.results_layout.setContentsMargins(
+            self.scale_manager.scale_value(15),
+            self.scale_manager.scale_value(15),
+            self.scale_manager.scale_value(15),
+            self.scale_manager.scale_value(15),
         )
         self.results_layout.setSpacing(self.scale_manager.scale_value(10))
         self.results_layout.setAlignment(Qt.AlignTop)
@@ -185,4 +202,3 @@ class Card(QWidget):
         self.right_column.addWidget(self.step3_desc)
         self.right_column.addLayout(sort_layout)
         self.right_column.addWidget(self.results_card, 1)
-    

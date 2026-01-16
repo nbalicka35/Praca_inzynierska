@@ -14,11 +14,11 @@ class ItemDelegate(QStyledItemDelegate):
     def __init__(self, height=30):
         super().__init__()
         self.item_height = height
-        
+
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index)
         size.setHeight(self.item_height)
-        return size 
+        return size
 
 
 class TopBar(QWidget):
@@ -30,15 +30,17 @@ class TopBar(QWidget):
 
         self.theme = theme
         self.scale_manager = scale_manager
-        
+
         self.small_font = scale_manager.scale_font(16)
         self.title_font = scale_manager.scale_font(44)
         self.setStyleSheet(f"font-size: {self.small_font}px;")
 
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(self.scale_manager.scale_value(20),
-            self.scale_manager.scale_value(10), self.scale_manager.scale_value(20),
-            self.scale_manager.scale_value(10)
+        main_layout.setContentsMargins(
+            self.scale_manager.scale_value(20),
+            self.scale_manager.scale_value(10),
+            self.scale_manager.scale_value(20),
+            self.scale_manager.scale_value(10),
         )
         main_layout.setSpacing(self.scale_manager.scale_value(5))
 
@@ -46,9 +48,13 @@ class TopBar(QWidget):
         top_row.addStretch()
 
         self.combobox_lang = QComboBox()
-        self.combobox_lang.setItemDelegate(ItemDelegate(height=scale_manager.scale_value(40)))
+        self.combobox_lang.setItemDelegate(
+            ItemDelegate(height=scale_manager.scale_value(40))
+        )
         self.combobox_lang.addItems(["EN", "PL"])
-        self.combobox_lang.setFixedSize(self.scale_manager.scale_value(60), self.scale_manager.scale_value(35))
+        self.combobox_lang.setFixedSize(
+            self.scale_manager.scale_value(90), self.scale_manager.scale_value(45)
+        )
         self.combobox_lang.setCursor(Qt.PointingHandCursor)
         self.combobox_lang.view().setCursor(Qt.PointingHandCursor)
         self.combobox_lang.currentTextChanged.connect(self.change_lang)
@@ -62,7 +68,9 @@ class TopBar(QWidget):
         self.dark_theme.clicked.connect(self.set_dark_theme)
 
         for button in [self.light_theme, self.dark_theme]:
-            button.setFixedSize(self.scale_manager.scale_value(110), self.scale_manager.scale_value(35))
+            button.setFixedSize(
+                self.scale_manager.scale_value(140), self.scale_manager.scale_value(40)
+            )
 
         top_row.addWidget(self.combobox_lang)
         top_row.addSpacing(self.scale_manager.scale_value(15))
@@ -96,7 +104,7 @@ class TopBar(QWidget):
     def set_dark_theme(self):
         self.theme = "Dark"
         self.update_theme()
-        self.theme_changed.emit("Dark") 
+        self.theme_changed.emit("Dark")
 
     def update_theme(self):
         border_radius = self.scale_manager.scale_value(10)
@@ -131,7 +139,7 @@ class TopBar(QWidget):
             )
 
             self.combobox_lang.setStyleSheet(
-            f"""
+                f"""
             QComboBox {{
                 font-weight: Normal;
                 border: 1px solid #ccc;
@@ -180,7 +188,7 @@ class TopBar(QWidget):
             )
 
             self.combobox_lang.setStyleSheet(
-            f"""
+                f"""
             QComboBox {{
                 font-weight: Normal;
                 border: 1px solid #ccc;

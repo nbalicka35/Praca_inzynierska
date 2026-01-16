@@ -49,33 +49,39 @@ from SettingsManager import SettingsManager
 
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.scale_manager = ScaleManager()
         self.settings_manager = SettingsManager()
-        
+
         self.current_language = self.settings_manager.get_language()
         self.translator = Translator(language=self.current_language, window=self)
-        
+
         saved_theme = self.settings_manager.get_theme()
         self.theme_manager = ThemesManager(self, theme=saved_theme)
-        
+
         self.selected_file = None
         self.selected_files = []
         self.selected_directory = None
-        
+
         self.predict_enabled = False
         self.classifier = BrainTumorClassifier(CHECKPOINT_PATH)
-        
+
         self.last_results = None
         self.result_type = None
         self.sorted_results = None
 
         # Window properties
         self.setWindowTitle("Neuron Desktop App")
-        self.setMinimumSize(QSize(self.scale_manager.scale_value(1450), self.scale_manager.scale_value(840)))
+        self.setMinimumSize(
+            QSize(
+                self.scale_manager.scale_value(1450),
+                self.scale_manager.scale_value(840),
+            )
+        )
 
         self.setAttribute(Qt.WA_StyledBackground, True)
 
@@ -86,25 +92,27 @@ class MainWindow(QMainWindow):
         # Top bar
         self.top_bar = TopBar(scale_manager=self.scale_manager, theme=saved_theme)
         self.top_bar.setContentsMargins(0, 0, 0, 50)
-        
+
         lang_index = 0 if self.current_language == "EN" else 1
         self.top_bar.combobox_lang.setCurrentIndex(lang_index)
-        
+
         self.top_bar.language_changed.connect(self.change_language)
         self.top_bar.theme_changed.connect(self.change_theme)
 
         # Main card
         self.card = Card(scale_manager=self.scale_manager, parent=self)
-        self.card.sort_by.addItems([
-            self.get_text("sort_default"),
-            self.get_text("sort_filename_az"),
-            self.get_text("sort_filename_za"),
-            self.get_text("sort_class_az"),
-            self.get_text("sort_class_za"),
-            self.get_text("sort_prob_asc"),
-            self.get_text("sort_prob_desc"),
-        ])
-        
+        self.card.sort_by.addItems(
+            [
+                self.get_text("sort_default"),
+                self.get_text("sort_filename_az"),
+                self.get_text("sort_filename_za"),
+                self.get_text("sort_class_az"),
+                self.get_text("sort_class_za"),
+                self.get_text("sort_prob_asc"),
+                self.get_text("sort_prob_desc"),
+            ]
+        )
+
         self.card.file_button.clicked.connect(self.open_file)
         self.card.dir_button.clicked.connect(self.open_directory)
         self.card.clear_button.clicked.connect(self.clear_selection)
@@ -123,10 +131,10 @@ class MainWindow(QMainWindow):
 
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
-        
+
         self.theme_manager.apply_theme(theme=self.theme_manager.current_theme)
         self.translator.apply()
-        
+
         saved_state = self.settings_manager.get_window_state()
         if saved_state == "maximized":
             self.showMaximized()
@@ -134,11 +142,11 @@ class MainWindow(QMainWindow):
             saved_size = self.settings_manager.get_window_size()
             if saved_size:
                 self.resize(saved_size)
-            
+
             saved_position = self.settings_manager.get_window_position()
             if saved_position:
                 self.move(saved_position)
-        
+
         self.setCentralWidget(central_widget)
 
     def open_file(self):
@@ -153,14 +161,14 @@ class MainWindow(QMainWindow):
         filenames, _ = QFileDialog.getOpenFileNames(
             self, window_title, pictures_path, "JPG files (*.jpg *.jpeg)"
         )
-        
+
         if not filenames:
             return
-        
+
         # Turn the preview on
         self.card.preview_label.setVisible(False)
         self.card.preview_container.setVisible(True)
-        
+
         # Wipe data just in case
         self.clear_thumbnails()
 
@@ -170,24 +178,26 @@ class MainWindow(QMainWindow):
             self.selected_files = []
 
             file_name = os.path.basename(filenames[0])
-            self.card.file_name_label.setText(f"{self.get_text("selected")}: {file_name}")
+            self.card.file_name_label.setText(
+                f"{self.get_text("selected")}: {file_name}"
+            )
 
             # Display thumbnail
             self.add_thumbnail(filenames[0])
-            
+
         else:
             # User selected multiple files
             self.selected_file = None
             self.selected_files = filenames
-            
+
             self.card.file_name_label.setText(
                 f"{self.get_text("selected")}: {len(filenames)} {self.get_text('images')}"
             )
-            
+
             # Display up to 3 thumbnails
             for filepath in filenames[:3]:
                 self.add_thumbnail(filepath)
-                
+
             if len(filenames) > 3:
                 # Add more thumbnail
                 more_label = QLabel(f"+{len(filenames) - 3}")
@@ -200,19 +210,21 @@ class MainWindow(QMainWindow):
                     """
                 )
                 more_label.setAlignment(Qt.AlignCenter)
-                more_label.setFixedSize(self.get_preview_size(), self.get_preview_size())
-                
+                more_label.setFixedSize(
+                    self.get_preview_size(), self.get_preview_size()
+                )
+
                 # Add as the last element
                 self.card.thumbnails_layout.addWidget(more_label)
 
         # Enable predict button
         self.predict_enabled = True
         self.card.predict_button.setEnabled(self.predict_enabled)
-        
+
         # Enable clear button
         self.card.clear_button.setVisible(True)
         self.card.clear_button.setEnabled(True)
-        
+
     def open_directory(self):
         window_title = (
             "Select Folder" if self.current_language == "EN" else "Wybierz folder"
@@ -243,7 +255,11 @@ class MainWindow(QMainWindow):
             self.card.preview_container.setVisible(True)
 
             self.card.file_name_label.setText(
-                self.get_text("selected_images", count=len(jpg_files), folder=os.path.basename(dirname))
+                self.get_text(
+                    "selected_images",
+                    count=len(jpg_files),
+                    folder=os.path.basename(dirname),
+                )
             )
 
             self.clear_thumbnails()
@@ -294,12 +310,16 @@ class MainWindow(QMainWindow):
             self.last_results = res
 
         except Exception as e:
-            title = "Execution failed" if self.current_language == "EN" else "Wykonanie nie powiodło się"
+            title = (
+                "Execution failed"
+                if self.current_language == "EN"
+                else "Wykonanie nie powiodło się"
+            )
             ErrMsgDialog(parent=self, title=title, msg=str(e))
             print(f"Prediction error: {e}")
 
         finally:
-            label = "Predict" if self.current_language=="EN" else "Uruchom"
+            label = "Predict" if self.current_language == "EN" else "Uruchom"
             self.card.sort_by.setCurrentIndex(0)
             self.card.predict_button.setText(label)
             self.card.predict_button.setEnabled(True)
@@ -308,7 +328,7 @@ class MainWindow(QMainWindow):
     def refresh_results(self):
         if self.last_results is None:
             return
-        
+        print(f"refreshing results... Result type: {self.result_type}")
         if self.result_type == "single":
             self.show_single_res(self.last_results)
         elif self.result_type == "batch":
@@ -349,10 +369,10 @@ class MainWindow(QMainWindow):
     def change_theme(self, theme):
         # Save current theme setting
         self.settings_manager.set_theme(theme=theme)
-        
+
         # Apply UI theme
         self.theme_manager.apply_theme(theme)
-        
+
         # Refresh results
         self.refresh_results()
 
@@ -374,10 +394,13 @@ class MainWindow(QMainWindow):
 
         self.card.clear_button.setVisible(True)
         self.card.clear_button.setEnabled(False)
-        
+
         self.card.sort_by.setCurrentIndex(0)
-        
+
         self.clear_results()
+        self.last_results = None
+        self.result_type = None
+        self.sort_results = None
         print("Selection cleared.")
 
     def get_preview_size(self):
@@ -385,7 +408,7 @@ class MainWindow(QMainWindow):
         window_height = self.height()
         preview_size = int(window_height * 0.15)
         print(f"preview size: {preview_size}\nreturn:{max(80, min(preview_size, 150))}")
-        
+
         # Return value between 80 and 150
         return max(80, min(preview_size, 150))
 
@@ -484,10 +507,9 @@ class MainWindow(QMainWindow):
                 "no_tumor": "#519A47",
                 "pituitary_tumor": "#A6A637",
                 "text": "#FFFAF2",
-            }
-                
+            },
         }
-    
+
         current_theme = self.theme_manager.current_theme
         card_color = colors[current_theme][pred]
 
@@ -505,7 +527,12 @@ class MainWindow(QMainWindow):
         card.setFixedHeight(self.scale_manager.scale_value(60))
 
         layout = QHBoxLayout(card)
-        layout.setContentsMargins(self.scale_manager.scale_value(10), self.scale_manager.scale_value(5), self.scale_manager.scale_value(10), self.scale_manager.scale_value(5))
+        layout.setContentsMargins(
+            self.scale_manager.scale_value(10),
+            self.scale_manager.scale_value(5),
+            self.scale_manager.scale_value(10),
+            self.scale_manager.scale_value(5),
+        )
         layout.setSpacing(self.scale_manager.scale_value(10))
 
         name_label = QLabel(filename)
@@ -522,7 +549,9 @@ class MainWindow(QMainWindow):
 
         # Confidence bar
         confidence_bar = QProgressBar(card)
-        confidence_bar.setFixedSize(self.scale_manager.scale_value(120), self.scale_manager.scale_value(15))
+        confidence_bar.setFixedSize(
+            self.scale_manager.scale_value(180), self.scale_manager.scale_value(15)
+        )
         confidence_bar.setMinimum(0)
         confidence_bar.setMaximum(100)
         confidence_bar.setValue(int(confidence * 100))
@@ -541,17 +570,25 @@ class MainWindow(QMainWindow):
         """
         )
         confidence_bar.setVisible(self.width() >= self.scale_manager.scale_value(1600))
-        print(f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(1600)}")
+        print(
+            f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(1600)}"
+        )
 
         conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("probability")}")
         conf_label.setStyleSheet(f"background-color: transparent; border: none;")
-        conf_label.setFixedWidth(self.scale_manager.scale_value(220))
+        conf_label.setFixedWidth(self.scale_manager.scale_value(280))
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         details_button = QPushButton("🔍")
-        details_button.setFixedSize(self.scale_manager.scale_value(40), self.scale_manager.scale_value(40))
+        details_button.setFixedSize(
+            self.scale_manager.scale_value(40), self.scale_manager.scale_value(40)
+        )
         details_button.setCursor(Qt.PointingHandCursor)
-        hint = "Show GradCAM visualization" if self.current_language=="EN" else "Pokaż mapę ciepła GradCAM"
+        hint = (
+            "Show GradCAM visualization"
+            if self.current_language == "EN"
+            else "Pokaż mapę ciepła GradCAM"
+        )
         details_button.setToolTip(hint)
         details_button.setStyleSheet(
             f"""
@@ -559,6 +596,7 @@ class MainWindow(QMainWindow):
                 background: transparent;
                 border: none;
                 font-size: {self.scale_manager.scale_font(24)}px;
+                border-radius: 10px;
             }}
             QPushButton:hover {{
                 background: rgba(255, 255, 255, 0.3);
@@ -598,8 +636,16 @@ class MainWindow(QMainWindow):
         try:
             img_pil = Image.open(filepath).convert("RGB")
             if img_pil is None:
-                title = "Image loading failed" if self.current_language=="EN" else "Załadowanie obrazu nie powiodło się"
-                content = "Could not load the image" if self.current_language == "EN" else "Błąd podczas ładowania obrazu" 
+                title = (
+                    "Image loading failed"
+                    if self.current_language == "EN"
+                    else "Załadowanie obrazu nie powiodło się"
+                )
+                content = (
+                    "Could not load the image"
+                    if self.current_language == "EN"
+                    else "Błąd podczas ładowania obrazu"
+                )
                 ErrMsgDialog(
                     parent=self,
                     title=title,
@@ -631,14 +677,18 @@ class MainWindow(QMainWindow):
             )
 
             gradcam_dialog = QDialog(self)
-            gradcam_dialog.setWindowTitle(f"{self.get_text("gradcam_title")} {os.path.basename(filepath)}")
+            gradcam_dialog.setWindowTitle(
+                f"{self.get_text("gradcam_title")} {os.path.basename(filepath)}"
+            )
             gradcam_dialog.setMinimumSize(600, 300)
 
             gradcam_layout = QVBoxLayout(gradcam_dialog)
             images_layout = QHBoxLayout()
 
             original_container = QVBoxLayout()
-            original_label = QLabel(f"{self.get_text("original")}\n{os.path.basename(filepath)}")
+            original_label = QLabel(
+                f"{self.get_text("original")}\n{os.path.basename(filepath)}"
+            )
             original_label.setAlignment(Qt.AlignCenter)
             original_label.setStyleSheet("font-weight: bold;")
             original_img = QLabel()
@@ -686,7 +736,9 @@ class MainWindow(QMainWindow):
                 f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["probability"]*100:.2f}%)"
             )
             info_label.setAlignment(Qt.AlignCenter)
-            info_label.setStyleSheet(f"font-size: {self.scale_manager.scale_font(18)}px; margin-top: 10px;")
+            info_label.setStyleSheet(
+                f"font-size: {self.scale_manager.scale_font(18)}px; margin-top: 10px;"
+            )
 
             gradcam_layout.addLayout(images_layout)
             gradcam_layout.addWidget(info_label)
@@ -695,7 +747,11 @@ class MainWindow(QMainWindow):
             gradcam_dialog.exec()
 
         except Exception as e:
-            title = "Visualization error has occured." if self.current_language == "EN" else "Wystąpił błąd wizualizacji."
+            title = (
+                "Visualization error has occured."
+                if self.current_language == "EN"
+                else "Wystąpił błąd wizualizacji."
+            )
             ErrMsgDialog(parent=self, title=title, msg=str(e))
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
@@ -710,53 +766,60 @@ class MainWindow(QMainWindow):
     def change_language(self, language):
         print(f"change_language called with: {language}")
         self.current_language = language
-        
+
         # Save current setting
         self.settings_manager.set_language(language=language)
-        
+
         # Translate the UI
         self.translator = Translator(window=self, language=self.current_language)
         self.translator.apply()
-        
+
         # Refresh UI elements
         self.refresh_results()
         self.refresh_sort_combobox()
-        
+
     def sort_results(self, index):
-        if self.last_results is None or self.result_type == 'single':
+        if self.last_results is None or self.result_type == "single":
             return
-        
+
         res = self.last_results.copy()
         if index == 0:
             res = self.last_results.copy()
         elif index == 1:
-        # Filename A-Z
+            # Filename A-Z
             res.sort(key=lambda x: os.path.basename(x["filepath"]).lower())
         elif index == 2:
-        # Filename Z-A
-            res.sort(key=lambda x: os.path.basename(x["filepath"]).lower(), reverse=True)
+            # Filename Z-A
+            res.sort(
+                key=lambda x: os.path.basename(x["filepath"]).lower(), reverse=True
+            )
         elif index == 3:
-        # Classname A-Z
-            res.sort(key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower())
+            # Classname A-Z
+            res.sort(
+                key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower()
+            )
         elif index == 4:
-        # Classname Z-A
-            res.sort(key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower(), reverse=True)
+            # Classname Z-A
+            res.sort(
+                key=lambda x: os.path.basename(self.get_text(x["class_name"])).lower(),
+                reverse=True,
+            )
         elif index == 5:
-        # Confidence ASC
+            # Confidence ASC
             res.sort(key=lambda x: x["probability"])
         elif index == 6:
-        # Confidence DESC
+            # Confidence DESC
             res.sort(key=lambda x: x["probability"], reverse=True)
 
         self.sorted_results = res
         self.rebuild_result_card()
-        
+
     def rebuild_result_card(self):
         self.clear_results()
-        
+
         if self.sorted_results is None:
             return
-        
+
         for res in self.sorted_results:
             card = self.create_res_card(
                 filepath=res["filepath"],
@@ -765,46 +828,44 @@ class MainWindow(QMainWindow):
                 confidence=res["probability"],
             )
             self.card.results_layout.addWidget(card)
-            
+
         self.card.results_layout.addStretch()
         self.update_confidence_bar_visibility()
 
     def refresh_sort_combobox(self):
         idx = self.card.sort_by.currentIndex()
-        
+
         self.card.sort_by.blockSignals(True)
         self.card.sort_by.clear()
-        self.card.sort_by.addItems([
-            self.get_text("sort_default"),
-            self.get_text("sort_filename_az"),
-            self.get_text("sort_filename_za"),
-            self.get_text("sort_class_az"),
-            self.get_text("sort_class_za"),
-            self.get_text("sort_prob_asc"),
-            self.get_text("sort_prob_desc"),
-        ])
-        
+        self.card.sort_by.addItems(
+            [
+                self.get_text("sort_default"),
+                self.get_text("sort_filename_az"),
+                self.get_text("sort_filename_za"),
+                self.get_text("sort_class_az"),
+                self.get_text("sort_class_za"),
+                self.get_text("sort_prob_asc"),
+                self.get_text("sort_prob_desc"),
+            ]
+        )
+
         self.card.sort_by.setCurrentIndex(idx)
         self.card.sort_by.blockSignals(False)
 
     def get_text(self, key, **kwargs):
         return self.translator.get_text(key, **kwargs)
-        
+
     def clear_results(self):
         """
         Clears results card.
         """
-        self.last_results = None
-        self.result_type = None
-        self.sorted_results = None
-        
         while self.card.results_layout.count():
             item = self.card.results_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
             elif item.spacerItem():
                 pass
-            
+
     def closeEvent(self, event):
         """Save window size and position before closing the app"""
         if self.isMaximized():
@@ -813,7 +874,7 @@ class MainWindow(QMainWindow):
             self.settings_manager.set_window_state("normal")
             self.settings_manager.set_window_size(self.size())
             self.settings_manager.set_window_position(self.pos())
-        
+
         event.accept()
 
 

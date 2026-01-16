@@ -1,5 +1,6 @@
 import os
 
+
 class Translator:
     TEXTS = {
         "EN": {
@@ -61,14 +62,14 @@ class Translator:
             "image_load_failed": "Załadowanie obrazu nie powiodło się",
             "could_not_load": "Błąd podczas ładowania obrazu",
             "visualization_error": "Wystąpił błąd wizualizacji",
-        }
+        },
     }
 
     def __init__(self, language, window):
         self.current_lang = language
         self.current_window = window
         print(f"Translator init with language: {language}")
-            
+
     def apply(self):
         if self.current_lang == "PL":
             print("Calling set_polish()")
@@ -77,12 +78,12 @@ class Translator:
         elif self.current_lang == "EN":
             print("Calling set_english()")
             self.set_english()
-            
+
     def get_text(self, key, **kwargs):
         text = self.TEXTS[self.current_lang].get(key)
         if kwargs:
             text = text.format(**kwargs)
-            
+
         return text
 
     def set_polish(self):
@@ -91,17 +92,24 @@ class Translator:
         self.current_window.card.step1_desc.setText(
             "Wybierz plik(i) JPG lub ścieżkę z obrazami"
         )
-        
+
         if self.current_window.selected_file is not None:
-            self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}")
+            self.current_window.card.file_name_label.setText(
+                f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}"
+            )
         elif len(self.current_window.selected_files) > 0:
             if self.current_window.selected_directory is not None:
                 self.current_window.card.file_name_label.setText(
-                    self.get_text("selected_images", count = len(self.current_window.selected_files),
-                    folder = os.path.basename(self.current_window.selected_directory))
+                    self.get_text(
+                        "selected_images",
+                        count=len(self.current_window.selected_files),
+                        folder=os.path.basename(self.current_window.selected_directory),
+                    )
                 )
             else:
-                self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}")
+                self.current_window.card.file_name_label.setText(
+                    f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}"
+                )
 
         self.current_window.card.file_button.setText("Wybierz plik(i)")
         self.current_window.card.dir_button.setText("Wybierz folder")
@@ -126,25 +134,31 @@ class Translator:
         self.current_window.card.step3_desc.setText(
             "Poniżej sprawdź otrzymane wyniki dla obrazu/obrazów"
         )
-        
+
         self.current_window.card.sort_label.setText("Sortuj: ")
 
     def set_english(self):
         print("set_english() executing")
         self.current_window.card.step1_label.setText("Step 1")
         self.current_window.card.step1_desc.setText("Select JPG file(s) or directory")
-        
+
         if self.current_window.selected_file is not None:
-            self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}")
+            self.current_window.card.file_name_label.setText(
+                f"{self.get_text("selected")}: {os.path.basename(self.current_window.selected_file)}"
+            )
         elif len(self.current_window.selected_files) > 0:
             if self.current_window.selected_directory is not None:
                 self.current_window.card.file_name_label.setText(
-                    self.get_text("selected_images", count = len(self.current_window.selected_files),
-                    folder = os.path.basename(self.current_window.selected_directory))
+                    self.get_text(
+                        "selected_images",
+                        count=len(self.current_window.selected_files),
+                        folder=os.path.basename(self.current_window.selected_directory),
+                    )
                 )
             else:
-                self.current_window.card.file_name_label.setText(f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}")
-
+                self.current_window.card.file_name_label.setText(
+                    f"{self.get_text("selected")}: {len(self.current_window.selected_files)} {self.get_text('images')}"
+                )
 
         self.current_window.card.file_button.setText("Choose file(s)")
         self.current_window.card.dir_button.setText("Choose directory")
@@ -168,5 +182,5 @@ class Translator:
         self.current_window.card.step3_desc.setText(
             "Check the result for the photo(s) below"
         )
-        
+
         self.current_window.card.sort_label.setText("Sort by:")
