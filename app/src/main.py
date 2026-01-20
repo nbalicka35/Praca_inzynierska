@@ -40,6 +40,8 @@ import numpy as np
 import cv2
 from PIL import Image
 import traceback
+from datetime import datetime
+import csv
 
 from ThemesManager import ThemesManager
 from MsgDialog import MsgDialog
@@ -840,7 +842,61 @@ class MainWindow(QMainWindow):
         self.update_confidence_bar_visibility()
 
     def export_to_csv(self):
-        print("Export called from card! (main)")
+        if self.last_results is None:
+            title = "Export error" if self.current_language == "EN" else "Błąd eksportu"
+            msg = "No results to export." if self.current_language == "EN" else "Brak wyników do wyeksportowania."
+            MsgDialog(parent=self, title=title, msg=msg, type=QMessageBox.Critical)
+            return
+        
+        title = "Save CSV file" if self.current_language == "EN" else "Zapisz plik CSV"
+        default_name = f"neuron_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            title,
+            default_name,
+            "CSV files (*.csv)"
+        )
+        
+        if not filepath:
+            return # user canceled
+            
+        try:
+            print(self.last_results)
+            with open(filepath, 'w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Filepath", "Class", "Probability (%)"])
+                
+                if isinstance(self.last_results, dict):
+                    results_to_export = [self.last_results]
+                else:
+                    results_to_export = self.last_results
+                    
+                for res in results_to_export:
+                    writer.writerow([
+                        res["filepath"],
+                        res["class_name"],
+                        round(res['probability'] * 100, 2)
+                    ])
+                    
+            title = "Success" if self.current_language == "EN" else "Sukces"
+            msg = f"Result exported to:\n{filepath}" if self.current_language == "EN" else f"Wyniki wyeksportowano do:\n{filepath}"
+            MsgDialog(
+                parent=self,
+                title=title,
+                msg = msg,
+                type=QMessageBox.Information
+            )
+            
+        except Exception as e:
+            title = "Export error" if self.current_language == "EN" else "Błąd eksportu"
+            error_msg = traceback.format_exc()
+            
+            MsgDialog(
+                parent=self,
+                title=title,
+                msg=error_msg,
+                type=QMessageBox.Critical
+            )
 
     def refresh_sort_combobox(self):
         idx = self.card.sort_by.currentIndex()

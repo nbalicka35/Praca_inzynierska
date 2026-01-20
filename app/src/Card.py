@@ -163,6 +163,7 @@ class Card(QWidget):
         sort_layout.setAlignment(Qt.AlignRight | Qt.AlignBottom)
 
         self.export_button = QPushButton()
+        self.export_button.setFixedSize(260, self.BUTTON_HEIGHT)
         self.export_button.setCursor(Qt.PointingHandCursor)
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_to_csv)

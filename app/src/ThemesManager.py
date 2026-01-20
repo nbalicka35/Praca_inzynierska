@@ -84,6 +84,7 @@ class ThemesManager:
         self.window.card.predict_button.setStyleSheet(
             button_style
         )
+        self.window.card.export_button.setStyleSheet(button_style)
         
     def _apply_res_card_style(self, colors):
         self.window.card.results_card.setStyleSheet(
