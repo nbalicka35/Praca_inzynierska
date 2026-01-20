@@ -57,7 +57,7 @@ class ThemesManager:
 
         
     def _apply_button_style(self,colors):
-        text_size = self.scale_manager.scale_font(18)
+        text_size = self.scale_manager.scale_font(16)
         border_radius = self.scale_manager.scale_value(10)
         
         button_style = f"""
@@ -84,6 +84,7 @@ class ThemesManager:
         self.window.card.predict_button.setStyleSheet(
             button_style
         )
+        self.window.card.export_button.setStyleSheet(button_style)
         
     def _apply_res_card_style(self, colors):
         self.window.card.results_card.setStyleSheet(

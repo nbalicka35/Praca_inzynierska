@@ -30,6 +30,15 @@ class OversampledDataset(Dataset):
 
             for _ in range(repeat):
                 self.samples.append((path, label))
+         
+        lbl = "no_tumor"       
+        current_count = sum(1 for _, l in self.samples if l == lbl)
+        need = max_count-current_count
+        
+        if need > 0:            
+            lbl_paths = [p for p, l in base_samples if l == lbl]
+            for i in range(need):
+                self.samples.append((lbl_paths[i % len(lbl_paths)], lbl))
 
         print(f"Before oversampling: {len(base_samples)}")
         print(f"After oversampling: {len(self.samples)}")

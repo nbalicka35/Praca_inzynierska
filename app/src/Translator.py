@@ -125,9 +125,10 @@ class Translator:
         self.current_window.card.predict_button.setText("Uruchom")
 
         self.current_window.card.disclaimer_text.setText(
-            "Neuron to oprogramowanie stworzone z myślą o wsparciu lekarzy i radiologów w diagnozowaniu\n"
-            "guzów mózgu i może popełniać błędy.\n"
-            "Zawsze poddawaj pacjentów diagnozie i podejmuj decyzje w oparciu o własną wiedzę i doświadczenie."
+            'Neuron to oprogramowanie stworzone z myślą o wsparciu lekarzy i radiologów w diagnozowaniu <br>'
+            'guzów mózgu i może popełniać błędy. <br>'
+            'Zawsze poddawaj pacjentów diagnozie i podejmuj decyzje w oparciu o własną wiedzę i doświadczenie. '
+            '<a href="model_info" style="color: #5DADE2; text-decoration: underline;">Więcej informacji</a>'
         )
 
         self.current_window.card.step3_label.setText("Krok 3")
@@ -135,6 +136,7 @@ class Translator:
             "Poniżej sprawdź otrzymane wyniki dla obrazu/obrazów"
         )
 
+        self.current_window.card.export_button.setText("Eksportuj do pliku CSV")
         self.current_window.card.sort_label.setText("Sortuj: ")
 
     def set_english(self):
@@ -174,8 +176,9 @@ class Translator:
         self.current_window.card.predict_button.setText("Predict")
 
         self.current_window.card.disclaimer_text.setText(
-            "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
-            "Always examine patients and make a decision based on the knowledge of yours."
+            'Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes. <br>'
+            'Always examine patients and make a decision based on the knowledge of yours. '
+            '<a href="model_info" style="color: #5DADE2; text-decoration: underline;">More info</a>'
         )
 
         self.current_window.card.step3_label.setText("Step 3")
@@ -183,4 +186,5 @@ class Translator:
             "Check the result for the photo(s) below"
         )
 
+        self.current_window.card.export_button.setText("Export results to CSV")
         self.current_window.card.sort_label.setText("Sort by:")

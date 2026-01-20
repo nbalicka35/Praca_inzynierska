@@ -6,16 +6,16 @@ class ScaleManager:
     Scales the interface based on current resolution
     """
 
-    # Set base resolution to 2560x1600
-    BASE_WIDTH = 2560
-    BASE_HEIGHT = 1600
+    # Base resolution (1080p as reference)
+    BASE_HEIGHT = 1080
+    BASE_PIXEL_RATIO = 1.0
 
     def __init__(self):
         self.scale()
 
     def scale(self):
         """
-        Update scale factor
+        Update scale factor based on screen properties
         """
         screen = QApplication.primaryScreen()
         if screen:
@@ -24,20 +24,28 @@ class ScaleManager:
             self.width = geom.width()
             self.height = geom.height()
 
-            # Calculate scale factor
-            self.scale_x = self.width / self.BASE_WIDTH
-            self.scale_y = self.height / self.BASE_HEIGHT
-            self.scale = min(self.scale_x, self.scale_y)  # Pick smaller scale factor
-            print(f"scale_x: {self.scale_x}\nscale_y: {self.scale_y}")
+            # Get device pixel ratio (including windows scaling)
+            self.pixel_ratio = screen.devicePixelRatio()
+            # Scale in regard of base 1080p res
+            resolution_scale = self.height / self.BASE_HEIGHT
+            
+            # DPI compensation
+            self.scale_factor = resolution_scale / self.pixel_ratio
+            # Restrict scale factor range (0.6 - 1.8)
+            self.scale_factor = max(0.6, min(1.8, self.scale_factor))
+            
+            print(f"Screen: {self.width}x{self.height}")
+            print(f"Pixel ratio: {self.pixel_ratio}")
+            print(f"Scale factor: {self.scale_factor:.2f}")
 
         else:
-            self.scale = 1.0
+            self.scale_factor = 1.0
 
     def scale_value(self, value):
         """
         Scale given value.
         """
-        return int(value * self.scale)
+        return int(value * self.scale_factor)
 
     def scale_size(self, width, height):
         """
@@ -49,4 +57,4 @@ class ScaleManager:
         """
         Scale font size.
         """
-        return max(12, self.scale_value(size))  # Get minimum 12 px up to scaled value
+        return max(10, self.scale_value(size))  # Get minimum 10 px up to scaled value
