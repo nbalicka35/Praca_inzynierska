@@ -839,6 +839,9 @@ class MainWindow(QMainWindow):
         self.card.results_layout.addStretch()
         self.update_confidence_bar_visibility()
 
+    def export_to_csv(self):
+        print("Export called from card! (main)")
+
     def refresh_sort_combobox(self):
         idx = self.card.sort_by.currentIndex()
 

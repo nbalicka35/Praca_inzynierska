@@ -240,3 +240,5 @@ class Card(QWidget):
     
     def export_to_csv(self):
         print("Export called!")
+        
+        self.window.export_to_csv()
