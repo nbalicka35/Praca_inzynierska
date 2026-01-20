@@ -57,7 +57,7 @@ class ThemesManager:
 
         
     def _apply_button_style(self,colors):
-        text_size = self.scale_manager.scale_font(18)
+        text_size = self.scale_manager.scale_font(16)
         border_radius = self.scale_manager.scale_value(10)
         
         button_style = f"""

@@ -136,7 +136,7 @@ class Translator:
             "Poniżej sprawdź otrzymane wyniki dla obrazu/obrazów"
         )
 
-        self.current_window.card.export_button.setText("Eksportuj wyniki do pliku CSV")
+        self.current_window.card.export_button.setText("Eksportuj do pliku CSV")
         self.current_window.card.sort_label.setText("Sortuj: ")
 
     def set_english(self):
@@ -186,5 +186,5 @@ class Translator:
             "Check the result for the photo(s) below"
         )
 
-        self.current_window.card.export_button.setText("Export results to CSV file")
+        self.current_window.card.export_button.setText("Export results to CSV")
         self.current_window.card.sort_label.setText("Sort by:")
