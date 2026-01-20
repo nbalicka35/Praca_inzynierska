@@ -127,7 +127,7 @@ class Translator:
         self.current_window.card.disclaimer_text.setText(
             'Neuron to oprogramowanie stworzone z myślą o wsparciu lekarzy i radiologów w diagnozowaniu <br>'
             'guzów mózgu i może popełniać błędy. <br>'
-            'Zawsze poddawaj pacjentów diagnozie i podejmuj decyzje w oparciu o własną wiedzę i doświadczenie. '
+            'Zawsze poddawaj pacjentów diagnozie i podejmuj decyzje w oparciu o własną wiedzę i doświadczenie.<br>'
             '<a href="model_info" style="color: #5DADE2; text-decoration: underline;">Więcej informacji</a>'
         )
 

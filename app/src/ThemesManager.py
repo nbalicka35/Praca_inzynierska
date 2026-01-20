@@ -118,7 +118,7 @@ class ThemesManager:
     def _apply_labels_style(self, colors):
         font_large = self.scale_manager.scale_font(20)
         font_medium = self.scale_manager.scale_font(18)
-        font_small = self.scale_manager.scale_font(14)
+        font_small = self.scale_manager.scale_font(16)
         
         self.window.card.step1_label.setStyleSheet(f"font-weight: bold; font-size: {font_large}px; color: {colors["text"]}; background-color: {colors["card"]};")
         self.window.card.step1_desc.setStyleSheet(f"font-size: {font_medium}px; color: {colors["text"]}; background-color: {colors["card"]};")
@@ -146,12 +146,12 @@ class ThemesManager:
                 QComboBox {{
                     background-color: {colors["background"]};
                     padding: 5px 10px;
-                    font-size: {font_medium}px;
+                    font-size: {font_small}px;
                 }}
                 QComboBox QAbstractItemView {{
                     background-color: {colors["background"]};
                     color: {colors['text']};
-                    font-size: {font_medium}px;
+                    font-size: {font_small}px;
                 }}
             """
         )
