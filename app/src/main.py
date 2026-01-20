@@ -322,14 +322,20 @@ class MainWindow(QMainWindow):
                 else "Wykonanie nie powiodło się"
             )
             error_msg = (
-                f"Image resolution too low.\n"
-                f"Minimum required: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
-            ) if self.current_language == "EN" else (
-                f"Zbyt niska rozdzielczość obrazu.\n"
-                f"Wymagane minimum: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
+                (
+                    f"Image resolution too low.\n"
+                    f"Minimum required: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
+                )
+                if self.current_language == "EN"
+                else (
+                    f"Zbyt niska rozdzielczość obrazu.\n"
+                    f"Wymagane minimum: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
+                )
             )
-            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
-            
+            MsgDialog(
+                parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
+            )
+
         except Exception as e:
             title = (
                 "Execution failed"
@@ -337,7 +343,9 @@ class MainWindow(QMainWindow):
                 else "Wykonanie nie powiodło się"
             )
             error_msg = traceback.format_exc()
-            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
+            MsgDialog(
+                parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
+            )
             print(f"Prediction error: {e}")
 
         finally:
@@ -673,7 +681,7 @@ class MainWindow(QMainWindow):
                     parent=self,
                     title=title,
                     msg=lambda f=filepath: f"{content}: {f}\n{error_msg}",
-                    type=QMessageBox.Critical
+                    type=QMessageBox.Critical,
                 )
                 print(f"Could not load the image: {filepath}")
                 self.setCursor(Qt.ArrowCursor)
@@ -777,7 +785,9 @@ class MainWindow(QMainWindow):
                 else "Wystąpił błąd wizualizacji."
             )
             error_msg = traceback.format_exc()
-            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
+            MsgDialog(
+                parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
+            )
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
 
@@ -860,58 +870,57 @@ class MainWindow(QMainWindow):
     def export_to_csv(self):
         if self.last_results is None:
             title = "Export error" if self.current_language == "EN" else "Błąd eksportu"
-            msg = "No results to export." if self.current_language == "EN" else "Brak wyników do wyeksportowania."
+            msg = (
+                "No results to export."
+                if self.current_language == "EN"
+                else "Brak wyników do wyeksportowania."
+            )
             MsgDialog(parent=self, title=title, msg=msg, type=QMessageBox.Critical)
             return
-        
+
         title = "Save CSV file" if self.current_language == "EN" else "Zapisz plik CSV"
         default_name = f"neuron_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         filepath, _ = QFileDialog.getSaveFileName(
-            self,
-            title,
-            default_name,
-            "CSV files (*.csv)"
+            self, title, default_name, "CSV files (*.csv)"
         )
-        
+
         if not filepath:
-            return # user canceled
-            
+            return  # user canceled
+
         try:
             print(self.last_results)
-            with open(filepath, 'w', newline='', encoding='utf-8') as file:
+            with open(filepath, "w", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Filepath", "Class", "Probability (%)"])
-                
+
                 if isinstance(self.last_results, dict):
                     results_to_export = [self.last_results]
                 else:
                     results_to_export = self.last_results
-                    
+
                 for res in results_to_export:
-                    writer.writerow([
-                        res["filepath"],
-                        res["class_name"],
-                        round(res['probability'] * 100, 2)
-                    ])
-                    
+                    writer.writerow(
+                        [
+                            res["filepath"],
+                            res["class_name"],
+                            round(res["probability"] * 100, 2),
+                        ]
+                    )
+
             title = "Success" if self.current_language == "EN" else "Sukces"
-            msg = f"Result exported to:\n{filepath}" if self.current_language == "EN" else f"Wyniki wyeksportowano do:\n{filepath}"
-            MsgDialog(
-                parent=self,
-                title=title,
-                msg = msg,
-                type=QMessageBox.Information
+            msg = (
+                f"Result exported to:\n{filepath}"
+                if self.current_language == "EN"
+                else f"Wyniki wyeksportowano do:\n{filepath}"
             )
-            
+            MsgDialog(parent=self, title=title, msg=msg, type=QMessageBox.Information)
+
         except Exception as e:
             title = "Export error" if self.current_language == "EN" else "Błąd eksportu"
             error_msg = traceback.format_exc()
-            
+
             MsgDialog(
-                parent=self,
-                title=title,
-                msg=error_msg,
-                type=QMessageBox.Critical
+                parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
             )
 
     def refresh_sort_combobox(self):

@@ -177,7 +177,7 @@ class Card(QWidget):
             ItemDelegate(height=self.scale_manager.scale_value(40))
         )
         self.sort_by.setFixedSize(
-            self.scale_manager.scale_value(200), self.scale_manager.scale_value(50)
+            self.scale_manager.scale_value(240), self.scale_manager.scale_value(50)
         )
         self.sort_by.setCursor(Qt.PointingHandCursor)
         self.sort_by.view().setCursor(Qt.PointingHandCursor)

@@ -34,8 +34,8 @@ class ScaleManager:
 
             if self.width >= 2560:
                 self.scale_factor *= 1
-            elif self.height >= 1920:
-                self.scale_factor *= 0.75
+            elif self.width >= 1920:
+                self.scale_factor *= 0.8
 
             # Restrict scale factor range (0.6 - 1.8)
             self.scale_factor = max(0.6, min(1.8, self.scale_factor))
