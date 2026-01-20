@@ -13,6 +13,7 @@ from PyQt5.QtCore import Qt
 from TopBar import ItemDelegate
 from MsgDialog import MsgDialog
 
+
 class Card(QWidget):
 
     def __init__(self, scale_manager, parent=None):
@@ -163,7 +164,7 @@ class Card(QWidget):
         sort_layout.setAlignment(Qt.AlignRight | Qt.AlignBottom)
 
         self.export_button = QPushButton()
-        self.export_button.setFixedSize(260, self.BUTTON_HEIGHT)
+        self.export_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.export_button.setCursor(Qt.PointingHandCursor)
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_to_csv)
@@ -213,33 +214,37 @@ class Card(QWidget):
         self.right_column.addWidget(self.results_card, 1)
 
     def show_model_info(self):
-        title = "More info" if self.window.current_language == "EN" else "Więcej informacji"
+        title = (
+            "More info" if self.window.current_language == "EN" else "Więcej informacji"
+        )
         msg_en = (
             "Classification model: ResNet-34\n\n"
             "Performance metrics:\n"
             "- Accuracy: X% — overall correct predictions\n"
             "- Precision: X% — reliability of positive predictions\n\n"
             "Important notes:\n"
-            "The \"no tumor\" category had fewer training samples and were artificially increased, "
+            'The "no tumor" category had fewer training samples and were artificially increased, '
             "so predictions for healthy scans may be less reliable.\n\n"
             "Always verify results with clinical assessment."
         )
-        
+
         msg_pl = (
             "Model klasyfikacji: ResNet-34\n\n"
             "Metryki wydajności:\n"
             "- Dokładność (accuracy): X% — odsetek poprawnych predykcji\n"
             "- Precyzja (precision): X% — wiarygodność pozytywnych wyników\n\n"
             "Ważne informacje:\n"
-            "Kategoria \"brak guza\" miała mniej próbek treningowych, dlatego ich liczba została sztucznie zwiększona. "
+            'Kategoria "brak guza" miała mniej próbek treningowych, dlatego ich liczba została sztucznie zwiększona. '
             "Predykcje dla zdrowych skanów mogą być mniej wiarygodne.\n\n"
             "Zawsze weryfikuj wyniki z oceną kliniczną."
         )
-        
+
         msg = msg_en if self.window.current_language == "EN" else msg_pl
-        MsgDialog(parent=self.window, title=title, msg=msg, type=QMessageBox.Information)
-    
+        MsgDialog(
+            parent=self.window, title=title, msg=msg, type=QMessageBox.Information
+        )
+
     def export_to_csv(self):
         print("Export called!")
-        
+
         self.window.export_to_csv()
