@@ -314,6 +314,21 @@ class MainWindow(QMainWindow):
             self.last_results = res
             self.card.export_button.setEnabled(True)
 
+        except ValueError as e:
+            title = (
+                "Execution failed"
+                if self.current_language == "EN"
+                else "Wykonanie nie powiodło się"
+            )
+            error_msg = (
+                f"Image resolution too low.\n"
+                f"Minimum required: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
+            ) if self.current_language == "EN" else (
+                f"Zbyt niska rozdzielczość obrazu.\n"
+                f"Wymagane minimum: ({self.classifier.image_size[0]}x{self.classifier.image_size[1]})px"
+            )
+            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
+            
         except Exception as e:
             title = (
                 "Execution failed"

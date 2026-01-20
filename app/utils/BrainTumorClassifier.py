@@ -39,11 +39,23 @@ class BrainTumorClassifier:
                 transforms.Normalize(mean=[mean] * 3, std=[std] * 3),
             ]
         )
+        
+    def validate_image_size(self, img_path, min_img_size=(120, 120)):
+        """
+        Check image resolution.
+        """
+        img = Image.open(img_path).convert("RGB")
+        w, h = img.size
+        
+        if w < min_img_size[0] or h < min_img_size[1]:
+            raise ValueError()
 
     def predict(self, img_path):
         """
         Classifies single picture.
         """
+        self.validate_image_size(img_path=img_path)
+        
         img = Image.open(img_path).convert("RGB")
 
         img_trans = self.transform(img)
