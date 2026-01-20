@@ -1,3 +1,4 @@
+# informacja o dokładności predykcji modelu, jego typie itp., zapis predykcji do pliku, rozdzielczość plików -- nie przyjmować zbyt małej, zaznaczyć oversampling + augmentacja
 import os
 import sys
 
