@@ -58,6 +58,7 @@ QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.MIN_WIDTH = 1700
 
         self.scale_manager = ScaleManager()
         self.settings_manager = SettingsManager()
@@ -83,8 +84,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Neuron Desktop App")
         self.setMinimumSize(
             QSize(
-                self.scale_manager.scale_value(1450),
-                self.scale_manager.scale_value(840),
+                self.scale_manager.scale_value(self.MIN_WIDTH),
+                self.scale_manager.scale_value(900),
             )
         )
 
@@ -580,7 +581,7 @@ class MainWindow(QMainWindow):
         # Confidence bar
         confidence_bar = QProgressBar(card)
         confidence_bar.setFixedSize(
-            self.scale_manager.scale_value(180), self.scale_manager.scale_value(15)
+            self.scale_manager.scale_value(160), self.scale_manager.scale_value(15)
         )
         confidence_bar.setMinimum(0)
         confidence_bar.setMaximum(100)
@@ -599,9 +600,11 @@ class MainWindow(QMainWindow):
             }
         """
         )
-        confidence_bar.setVisible(self.width() >= self.scale_manager.scale_value(1600))
+        confidence_bar.setVisible(
+            self.width() >= self.scale_manager.scale_value(self.MIN_WIDTH * 1.1)
+        )
         print(
-            f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(1600)}"
+            f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(self.MIN_WIDTH*1.1)}"
         )
 
         conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("probability")}")
@@ -650,7 +653,7 @@ class MainWindow(QMainWindow):
         return card
 
     def update_confidence_bar_visibility(self):
-        show_bars = self.width() > self.scale_manager.scale_value(1600)
+        show_bars = self.width() > self.scale_manager.scale_value(self.MIN_WIDTH * 1.1)
 
         for i in range(self.card.results_layout.count()):
             item = self.card.results_layout.itemAt(i)
