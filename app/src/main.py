@@ -31,6 +31,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QProgressBar,
     QDialog,
+    QMessageBox,
 )
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
 from PyQt5.QtGui import QPixmap, QImage
@@ -38,9 +39,10 @@ from PyQt5.QtGui import QPixmap, QImage
 import numpy as np
 import cv2
 from PIL import Image
+import traceback
 
 from ThemesManager import ThemesManager
-from ErrMsgDialog import ErrMsgDialog
+from MsgDialog import MsgDialog
 from TopBar import TopBar
 from Translator import Translator
 from Card import Card
@@ -308,6 +310,7 @@ class MainWindow(QMainWindow):
                 self.show_batch_res(res)
                 self.result_type = "batch"
             self.last_results = res
+            self.card.export_button.setEnabled(True)
 
         except Exception as e:
             title = (
@@ -315,7 +318,8 @@ class MainWindow(QMainWindow):
                 if self.current_language == "EN"
                 else "Wykonanie nie powiodło się"
             )
-            ErrMsgDialog(parent=self, title=title, msg=str(e))
+            error_msg = traceback.format_exc()
+            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
             print(f"Prediction error: {e}")
 
         finally:
@@ -646,10 +650,12 @@ class MainWindow(QMainWindow):
                     if self.current_language == "EN"
                     else "Błąd podczas ładowania obrazu"
                 )
-                ErrMsgDialog(
+                error_msg = traceback.format_exc()
+                MsgDialog(
                     parent=self,
                     title=title,
-                    msg=lambda f=filepath: f"{content}: {f}",
+                    msg=lambda f=filepath: f"{content}: {f}\n{error_msg}",
+                    type=QMessageBox.Critical
                 )
                 print(f"Could not load the image: {filepath}")
                 self.setCursor(Qt.ArrowCursor)
@@ -752,7 +758,8 @@ class MainWindow(QMainWindow):
                 if self.current_language == "EN"
                 else "Wystąpił błąd wizualizacji."
             )
-            ErrMsgDialog(parent=self, title=title, msg=str(e))
+            error_msg = traceback.format_exc()
+            MsgDialog(parent=self, title=title, msg=error_msg, type=QMessageBox.Critical)
             print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
 
@@ -859,6 +866,7 @@ class MainWindow(QMainWindow):
         """
         Clears results card.
         """
+        self.card.export_button.setEnabled(False)
         while self.card.results_layout.count():
             item = self.card.results_layout.takeAt(0)
             if item.widget():

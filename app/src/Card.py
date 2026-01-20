@@ -6,11 +6,12 @@ from PyQt5.QtWidgets import (
     QLabel,
     QHBoxLayout,
     QVBoxLayout,
+    QMessageBox,
 )
 from PyQt5.QtCore import Qt
 
 from TopBar import ItemDelegate
-
+from MsgDialog import MsgDialog
 
 class Card(QWidget):
 
@@ -50,16 +51,16 @@ class Card(QWidget):
         self.left_column.setAlignment(Qt.AlignTop)
 
         # Step 1
-        self.step1_label = QLabel("Step 1")
-        self.step1_desc = QLabel("Select JPG file(s) or directory")
+        self.step1_label = QLabel()
+        self.step1_desc = QLabel()
 
         buttons_layout = QHBoxLayout()
 
-        self.file_button = QPushButton("Choose file(s)")
+        self.file_button = QPushButton()
         self.file_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.file_button.setCursor(Qt.PointingHandCursor)
 
-        self.dir_button = QPushButton("Choose directory")
+        self.dir_button = QPushButton()
         self.dir_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.dir_button.setCursor(Qt.PointingHandCursor)
 
@@ -68,7 +69,7 @@ class Card(QWidget):
         buttons_layout.addStretch()
 
         # Image(s) preview section
-        self.preview_label = QLabel("Preview of selected image(s) will appear below")
+        self.preview_label = QLabel()
 
         self.preview_container = QWidget()
         self.preview_container.setAttribute(Qt.WA_StyledBackground, True)
@@ -91,7 +92,7 @@ class Card(QWidget):
         self.thumbnails_layout.setAlignment(Qt.AlignLeft)
 
         # Clear button
-        self.clear_button = QPushButton("Clear")
+        self.clear_button = QPushButton()
         self.clear_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.setEnabled(False)
@@ -105,13 +106,13 @@ class Card(QWidget):
         preview_container_layout.addLayout(image_row)
 
         # Step 2
-        self.step2_label = QLabel("Step 2")
-        self.step2_desc = QLabel("Examine photo(s)")
+        self.step2_label = QLabel()
+        self.step2_desc = QLabel()
 
         # Predict button
         predict_layout = QHBoxLayout()
 
-        self.predict_button = QPushButton("Predict")
+        self.predict_button = QPushButton()
         self.predict_button.setEnabled(False)
         self.predict_button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
         self.predict_button.setCursor(Qt.PointingHandCursor)
@@ -127,11 +128,11 @@ class Card(QWidget):
         self.disclaimer_icon = QLabel("⚠️")
         self.disclaimer_icon.setAlignment(Qt.AlignTop)
 
-        self.disclaimer_text = QLabel(
-            "Please note that Neuron is a software designed to support physicians and radiologists, and can make mistakes.\n"
-            "Always examine patients and make a decision based on the knowledge of yours."
-        )
+        self.disclaimer_text = QLabel()
         self.disclaimer_text.setAlignment(Qt.AlignLeft)
+        self.disclaimer_text.setOpenExternalLinks(False)
+        self.disclaimer_text.setCursor(Qt.PointingHandCursor)
+        self.disclaimer_text.linkActivated.connect(self.show_model_info)
 
         disclaimer_layout.addWidget(self.disclaimer_icon)
         disclaimer_layout.addWidget(self.disclaimer_text)
@@ -155,14 +156,19 @@ class Card(QWidget):
         self.right_column.setAlignment(Qt.AlignTop)
 
         # Step 3
-        self.step3_label = QLabel("Step 3")
-        self.step3_desc = QLabel("Check the result for the photo(s) below")
+        self.step3_label = QLabel()
+        self.step3_desc = QLabel()
 
         sort_layout = QHBoxLayout()
         sort_layout.setAlignment(Qt.AlignRight | Qt.AlignBottom)
 
+        self.export_button = QPushButton()
+        self.export_button.setCursor(Qt.PointingHandCursor)
+        self.export_button.setEnabled(False)
+        self.export_button.clicked.connect(self.export_to_csv)
+
         # Sort options
-        self.sort_label = QLabel("Sort by:")
+        self.sort_label = QLabel()
 
         self.sort_by = QComboBox()
         self.sort_by.setItemDelegate(
@@ -174,6 +180,8 @@ class Card(QWidget):
         self.sort_by.setCursor(Qt.PointingHandCursor)
         self.sort_by.view().setCursor(Qt.PointingHandCursor)
 
+        sort_layout.addWidget(self.export_button)
+        sort_layout.addStretch()
         sort_layout.addWidget(self.sort_label)
         sort_layout.addWidget(self.sort_by)
 
@@ -202,3 +210,33 @@ class Card(QWidget):
         self.right_column.addWidget(self.step3_desc)
         self.right_column.addLayout(sort_layout)
         self.right_column.addWidget(self.results_card, 1)
+
+    def show_model_info(self):
+        title = "More info" if self.window.current_language == "EN" else "Więcej informacji"
+        msg_en = (
+            "Classification model: ResNet-34\n\n"
+            "Performance metrics:\n"
+            "- Accuracy: X% — overall correct predictions\n"
+            "- Precision: X% — reliability of positive predictions\n\n"
+            "Important notes:\n"
+            "The \"no tumor\" category had fewer training samples and were artificially increased, "
+            "so predictions for healthy scans may be less reliable.\n\n"
+            "Always verify results with clinical assessment."
+        )
+        
+        msg_pl = (
+            "Model klasyfikacji: ResNet-34\n\n"
+            "Metryki wydajności:\n"
+            "- Dokładność (accuracy): X% — odsetek poprawnych predykcji\n"
+            "- Precyzja (precision): X% — wiarygodność pozytywnych wyników\n\n"
+            "Ważne informacje:\n"
+            "Kategoria \"brak guza\" miała mniej próbek treningowych, dlatego ich liczba została sztucznie zwiększona. "
+            "Predykcje dla zdrowych skanów mogą być mniej wiarygodne.\n\n"
+            "Zawsze weryfikuj wyniki z oceną kliniczną."
+        )
+        
+        msg = msg_en if self.window.current_language == "EN" else msg_pl
+        MsgDialog(parent=self.window, title=title, msg=msg, type=QMessageBox.Information)
+    
+    def export_to_csv(self):
+        print("Export called!")

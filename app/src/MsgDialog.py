@@ -1,15 +1,15 @@
 from PyQt5.QtWidgets import QMessageBox
 
 
-class ErrMsgDialog(QMessageBox):
+class MsgDialog(QMessageBox):
     """
-    Class for error dialogs
+    Universal dialogs
     """
-
-    def __init__(self, parent, title, msg):
+    
+    def __init__(self, parent, title, msg, type=QMessageBox.Information):
         super().__init__(parent)
 
-        self.setIcon(QMessageBox.Critical)
+        self.setIcon(type)
         self.setWindowTitle(title)
         self.setText(msg)
         self.setStandardButtons(QMessageBox.Ok)
