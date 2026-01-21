@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QDialog,
     QMessageBox,
+    QSizePolicy,
 )
 from PyQt5.QtCore import QSize, QStandardPaths, Qt
 from PyQt5.QtGui import QPixmap, QImage
@@ -720,53 +721,43 @@ class MainWindow(QMainWindow):
             gradcam_layout = QVBoxLayout(gradcam_dialog)
             images_layout = QHBoxLayout()
 
-            original_container = QVBoxLayout()
-            original_label = QLabel(
-                f"{self.get_text("original")}\n{os.path.basename(filepath)}"
-            )
-            original_label.setAlignment(Qt.AlignCenter)
-            original_label.setStyleSheet("font-weight: bold;")
-            original_img = QLabel()
-            original_img.setPixmap(
-                original_pixmap.scaled(
-                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-            )
-            original_img.setAlignment(Qt.AlignCenter)
-            original_container.addWidget(original_label)
-            original_container.addWidget(original_img)
+            image_labels = []
 
-            heatmap_container = QVBoxLayout()
-            heatmap_label = QLabel(self.get_text("heatmap"))
-            heatmap_label.setAlignment(Qt.AlignCenter)
-            heatmap_label.setStyleSheet("font-weight: bold;")
-            heatmap_img = QLabel()
-            heatmap_img.setPixmap(
-                heatmap_pixmap.scaled(
-                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-            )
-            heatmap_img.setAlignment(Qt.AlignCenter)
-            heatmap_container.addWidget(heatmap_label)
-            heatmap_container.addWidget(heatmap_img)
+            def create_img_container(title, pixmap):
+                container = QVBoxLayout()
+                label = QLabel(title)
+                label.setAlignment(Qt.AlignCenter)
+                label.setStyleSheet("font-weight: bold;")
 
-            superimposed_container = QVBoxLayout()
-            superimposed_label = QLabel(self.get_text("overlay"))
-            superimposed_label.setAlignment(Qt.AlignCenter)
-            superimposed_label.setStyleSheet("font-weight: bold;")
-            superimposed_img = QLabel()
-            superimposed_img.setPixmap(
-                superimposed_pixmap.scaled(
-                    250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
+                img_lbl = QLabel()
+                img_lbl.setAlignment(Qt.AlignCenter)
+                img_lbl.setMinimumSize(200, 200)
+                img_lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                img_lbl.pixmap = pixmap
+
+                container.addWidget(label)
+                container.addWidget(img_lbl, 1)
+
+                image_labels.append(img_lbl)
+                return container
+
+            original_container = create_img_container(
+                f"{self.get_text("original")}\n{os.path.basename(filepath)}",
+                original_pixmap,
             )
-            superimposed_img.setAlignment(Qt.AlignCenter)
-            superimposed_container.addWidget(superimposed_label)
-            superimposed_container.addWidget(superimposed_img)
+            heatmap_container = create_img_container(
+                f"{self.get_text("heatmap")}\n{os.path.basename(filepath)}",
+                heatmap_pixmap,
+            )
+            overlay_container = create_img_container(
+                f"{self.get_text("overlay")}\n{os.path.basename(filepath)}",
+                superimposed_pixmap,
+            )
 
             images_layout.addLayout(original_container)
             images_layout.addLayout(heatmap_container)
-            images_layout.addLayout(superimposed_container)
+            images_layout.addLayout(overlay_container)
+
             info_label = QLabel(
                 f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["probability"]*100:.2f}%)"
             )
@@ -775,8 +766,28 @@ class MainWindow(QMainWindow):
                 f"font-size: {self.scale_manager.scale_font(18)}px; margin-top: 10px;"
             )
 
-            gradcam_layout.addLayout(images_layout)
+            gradcam_layout.addLayout(images_layout, 1)
             gradcam_layout.addWidget(info_label)
+
+            def update_images():
+                for img in image_labels:
+                    if hasattr(img, "pixmap"):
+                        size = img.size()
+                        scaled = img.pixmap.scaled(
+                            size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                        )
+                        img.setPixmap(scaled)
+
+            original_resize = gradcam_dialog.resizeEvent
+
+            def new_resize(event):
+                if original_resize:
+                    original_resize(event)
+                update_images()
+
+            gradcam_dialog.resizeEvent = new_resize
+
+            gradcam_dialog.showEvent = lambda e: update_images()
 
             self.setCursor(Qt.ArrowCursor)
             gradcam_dialog.exec()

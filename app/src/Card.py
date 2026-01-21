@@ -132,7 +132,6 @@ class Card(QWidget):
         self.disclaimer_text = QLabel()
         self.disclaimer_text.setAlignment(Qt.AlignLeft)
         self.disclaimer_text.setOpenExternalLinks(False)
-        self.disclaimer_text.setCursor(Qt.PointingHandCursor)
         self.disclaimer_text.linkActivated.connect(self.show_model_info)
 
         disclaimer_layout.addWidget(self.disclaimer_icon)
