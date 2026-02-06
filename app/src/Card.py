@@ -216,11 +216,13 @@ class Card(QWidget):
         title = (
             "More info" if self.window.current_language == "EN" else "Więcej informacji"
         )
+        acc = 0.97
+        precision = 0.97
         msg_en = (
             "Classification model: ResNet-34\n\n"
             "Performance metrics:\n"
-            "- Accuracy: X% — overall correct predictions\n"
-            "- Precision: X% — reliability of positive predictions\n\n"
+            f"- Accuracy: {acc}% — overall correct predictions\n"
+            f"- Precision: {precision}% — reliability of positive predictions\n\n"
             "Important notes:\n"
             'The "no tumor" category had fewer training samples and were artificially increased, '
             "so predictions for healthy scans may be less reliable.\n\n"
@@ -230,8 +232,8 @@ class Card(QWidget):
         msg_pl = (
             "Model klasyfikacji: ResNet-34\n\n"
             "Metryki wydajności:\n"
-            "- Dokładność (accuracy): X% — odsetek poprawnych predykcji\n"
-            "- Precyzja (precision): X% — wiarygodność pozytywnych wyników\n\n"
+            f"- Dokładność (accuracy): {acc}% — odsetek poprawnych predykcji\n"
+            f"- Precyzja (precision): {precision}% — wiarygodność pozytywnych wyników\n\n"
             "Ważne informacje:\n"
             'Kategoria "brak guza" miała mniej próbek treningowych, dlatego ich liczba została sztucznie zwiększona. '
             "Predykcje dla zdrowych skanów mogą być mniej wiarygodne.\n\n"

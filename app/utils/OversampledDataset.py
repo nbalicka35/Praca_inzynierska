@@ -8,13 +8,11 @@ class OversampledDataset(Dataset):
 
     def __init__(self, root_dir, transform, indices=None):
         self.transform = transform
-
         original = datasets.ImageFolder(root_dir)
         self.classes = original.classes
 
         if indices is not None:
             base_samples = [original.samples[i] for i in indices]
-
         else:
             base_samples = original.samples
 
@@ -27,18 +25,19 @@ class OversampledDataset(Dataset):
         self.samples = []
         for path, label in base_samples:
             repeat = max_count // class_counts[label]
-
             for _ in range(repeat):
                 self.samples.append((path, label))
-         
-        lbl = "no_tumor"       
-        current_count = sum(1 for _, l in self.samples if l == lbl)
-        need = max_count-current_count
-        
-        if need > 0:            
-            lbl_paths = [p for p, l in base_samples if l == lbl]
-            for i in range(need):
-                self.samples.append((lbl_paths[i % len(lbl_paths)], lbl))
+
+        no_tumor_label = self.classes.index("no_tumor")
+        current_count = sum(1 for _, l in self.samples if l == no_tumor_label)
+        need = max_count - current_count
+
+        if need > 0:
+            lbl_paths = [p for p, l in base_samples if l == no_tumor_label]
+
+            if len(lbl_paths) > 0:
+                for i in range(need):
+                    self.samples.append((lbl_paths[i % len(lbl_paths)], no_tumor_label))
 
         print(f"Before oversampling: {len(base_samples)}")
         print(f"After oversampling: {len(self.samples)}")
@@ -50,13 +49,11 @@ class OversampledDataset(Dataset):
         path, label = self.samples[index]
         img = Image.open(path).convert("RGB")
         img = self.transform(img)
-
         return img, label
 
     def print_class_distribution(self):
         """Print number of samples per class after oversampling"""
         class_counts = [0] * len(self.classes)
-
         for _, label in self.samples:
             class_counts[label] += 1
 
