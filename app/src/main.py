@@ -1,4 +1,3 @@
-# informacja o dokładności predykcji modelu, jego typie itp., zapis predykcji do pliku, rozdzielczość plików -- nie przyjmować zbyt małej, zaznaczyć oversampling + augmentacja
 import os
 import sys
 
@@ -186,7 +185,7 @@ class MainWindow(QMainWindow):
 
             file_name = os.path.basename(filenames[0])
             self.card.file_name_label.setText(
-                f"{self.get_text("selected")}: {file_name}"
+                f'{self.get_text("selected")}: {file_name}'
             )
 
             # Display thumbnail
@@ -198,7 +197,7 @@ class MainWindow(QMainWindow):
             self.selected_files = filenames
 
             self.card.file_name_label.setText(
-                f"{self.get_text("selected")}: {len(filenames)} {self.get_text('images')}"
+                f'{self.get_text("selected")}: {len(filenames)} {self.get_text("images")}'
             )
 
             # Display up to 3 thumbnails
@@ -314,6 +313,7 @@ class MainWindow(QMainWindow):
                 res = self.classifier.predict_batch(self.selected_files)
                 self.show_batch_res(res)
                 self.result_type = "batch"
+
             self.last_results = res
             self.card.export_button.setEnabled(True)
 
@@ -568,13 +568,13 @@ class MainWindow(QMainWindow):
         layout.setSpacing(self.scale_manager.scale_value(10))
 
         name_label = QLabel(filename)
-        name_label.setStyleSheet(f"background-color: transparent; border: none;")
+        name_label.setStyleSheet("background-color: transparent; border: none;")
         name_label.setFixedWidth(self.scale_manager.scale_value(120))
         name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         class_label = QLabel(self.get_text(pred))
         class_label.setStyleSheet(
-            f"background-color: transparent; border: none; font-weight: bold;"
+            "background-color: transparent; border: none; font-weight: bold;"
         )
         class_label.setFixedWidth(self.scale_manager.scale_value(160))
         class_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -604,12 +604,9 @@ class MainWindow(QMainWindow):
         confidence_bar.setVisible(
             self.width() >= self.scale_manager.scale_value(self.MIN_WIDTH * 1.1)
         )
-        print(
-            f"width during creating res card: {self.width()}\nscaled value: {self.scale_manager.scale_value(self.MIN_WIDTH*1.1)}"
-        )
 
-        conf_label = QLabel(f"{confidence*100:.2f}% {self.get_text("probability")}")
-        conf_label.setStyleSheet(f"background-color: transparent; border: none;")
+        conf_label = QLabel(f'{confidence*100:.2f}% {self.get_text("probability")}')
+        conf_label.setStyleSheet("background-color: transparent; border: none;")
         conf_label.setFixedWidth(self.scale_manager.scale_value(280))
         conf_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
@@ -714,7 +711,7 @@ class MainWindow(QMainWindow):
 
             gradcam_dialog = QDialog(self)
             gradcam_dialog.setWindowTitle(
-                f"{self.get_text("gradcam_title")} {os.path.basename(filepath)}"
+                f'{self.get_text("gradcam_title")} {os.path.basename(filepath)}'
             )
             gradcam_dialog.setMinimumSize(600, 300)
 
@@ -742,15 +739,15 @@ class MainWindow(QMainWindow):
                 return container
 
             original_container = create_img_container(
-                f"{self.get_text("original")}\n{os.path.basename(filepath)}",
+                f'{self.get_text("original")}\n{os.path.basename(filepath)}',
                 original_pixmap,
             )
             heatmap_container = create_img_container(
-                f"{self.get_text("heatmap")}\n{os.path.basename(filepath)}",
+                f'{self.get_text("heatmap")}\n{os.path.basename(filepath)}',
                 heatmap_pixmap,
             )
             overlay_container = create_img_container(
-                f"{self.get_text("overlay")}\n{os.path.basename(filepath)}",
+                f'{self.get_text("overlay")}\n{os.path.basename(filepath)}',
                 superimposed_pixmap,
             )
 
@@ -759,7 +756,7 @@ class MainWindow(QMainWindow):
             images_layout.addLayout(overlay_container)
 
             info_label = QLabel(
-                f"{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["probability"]*100:.2f}%)"
+                f'{self.get_text("prediction")}: {self.get_text(self.classifier.classes[res["class_index"]])} ({res["probability"]*100:.2f}%)'
             )
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setStyleSheet(

@@ -216,8 +216,8 @@ class Card(QWidget):
         title = (
             "More info" if self.window.current_language == "EN" else "Więcej informacji"
         )
-        acc = 0.97
-        precision = 0.97
+        acc = 97
+        precision = 97
         msg_en = (
             "Classification model: ResNet-34\n\n"
             "Performance metrics:\n"
