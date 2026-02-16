@@ -4,7 +4,6 @@ data/
 backup/
 archive/
 new_data/
-config/
 ./app/src/__pycache__
 ./app/utils/__pycache__
 .venv311/
