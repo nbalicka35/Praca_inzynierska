@@ -1,5 +1,5 @@
 ## Instalacja
-Aplikacja aby mogła zostać uruchomiona, wymaga Python 3.13.7. Nie ma gwarancji współpracy GUI z innymi wersjami.
+Aby uruchomić aplikację, należy zainstalować Python 3.13.7. Nie ma gwarancji współpracy GUI z innymi wersjami.
 ### 1. Sklonuj lub pobierz repozytorium
 ```bash
 git clone https://github.com/username/Praca_inzynierska.git
