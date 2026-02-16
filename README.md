@@ -1,5 +1,5 @@
 ## Instalacja
-Aplikacja działa na wersji Python 3.11.0 lub nowszej. Jest ona wymagana do uruchomienia aplikacji.
+Aplikacja aby mogła zostać uruchomiona, wymaga Python 3.13.7. Nie ma gwarancji współpracy GUI z innymi wersjami.
 ### 1. Sklonuj lub pobierz repozytorium
 ```bash
 git clone https://github.com/username/Praca_inzynierska.git

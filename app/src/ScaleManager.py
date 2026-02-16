@@ -28,7 +28,6 @@ class ScaleManager:
             self.pixel_ratio = screen.devicePixelRatio()
             # Scale in regard of base 1080p res
             resolution_scale = self.height / self.BASE_HEIGHT
-            print(f"res scale: {resolution_scale}\n")
             # DPI compensation
             self.scale_factor = resolution_scale / self.pixel_ratio
 
@@ -39,10 +38,6 @@ class ScaleManager:
 
             # Restrict scale factor range (0.6 - 1.8)
             self.scale_factor = max(0.6, min(1.8, self.scale_factor))
-
-            print(f"Screen: {self.width}x{self.height}")
-            print(f"Pixel ratio: {self.pixel_ratio}")
-            print(f"Scale factor: {self.scale_factor:.2f}")
 
         else:
             self.scale_factor = 1.0

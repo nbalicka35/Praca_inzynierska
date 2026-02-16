@@ -68,15 +68,12 @@ class Translator:
     def __init__(self, language, window):
         self.current_lang = language
         self.current_window = window
-        print(f"Translator init with language: {language}")
 
     def apply(self):
         if self.current_lang == "PL":
-            print("Calling set_polish()")
             self.set_polish()
 
         elif self.current_lang == "EN":
-            print("Calling set_english()")
             self.set_english()
 
     def get_text(self, key, **kwargs):
@@ -87,7 +84,6 @@ class Translator:
         return text
 
     def set_polish(self):
-        print("set_polish() executing")
         self.current_window.card.step1_label.setText("Krok 1")
         self.current_window.card.step1_desc.setText(
             "Wybierz plik(i) JPG lub ścieżkę z obrazami"
@@ -140,7 +136,6 @@ class Translator:
         self.current_window.card.sort_label.setText("Sortuj: ")
 
     def set_english(self):
-        print("set_english() executing")
         self.current_window.card.step1_label.setText("Step 1")
         self.current_window.card.step1_desc.setText("Select JPG file(s) or directory")
 

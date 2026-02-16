@@ -300,8 +300,6 @@ class MainWindow(QMainWindow):
 
         # Refresh app before long processing operation
         QApplication.processEvents()
-        print(f"selected_file: {self.selected_file}")
-        print(f"selected_files: {self.selected_files}")
         try:
             if self.selected_file:
                 res = self.classifier.predict(self.selected_file)
@@ -348,7 +346,6 @@ class MainWindow(QMainWindow):
             MsgDialog(
                 parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
             )
-            print(f"Prediction error: {e}")
 
         finally:
             label = "Predict" if self.current_language == "EN" else "Uruchom"
@@ -360,7 +357,6 @@ class MainWindow(QMainWindow):
     def refresh_results(self):
         if self.last_results is None:
             return
-        print(f"refreshing results... Result type: {self.result_type}")
         if self.result_type == "single":
             self.show_single_res(self.last_results)
         elif self.result_type == "batch":
@@ -433,13 +429,11 @@ class MainWindow(QMainWindow):
         self.last_results = None
         self.result_type = None
         self.sort_results = None
-        print("Selection cleared.")
 
     def get_preview_size(self):
         # Get 15% of current window size
         window_height = self.height()
         preview_size = int(window_height * 0.15)
-        print(f"preview size: {preview_size}\nreturn:{max(80, min(preview_size, 150))}")
 
         # Return value between 80 and 150
         return max(80, min(preview_size, 150))
@@ -684,7 +678,6 @@ class MainWindow(QMainWindow):
                     msg=lambda f=filepath: f"{content}: {f}\n{error_msg}",
                     type=QMessageBox.Critical,
                 )
-                print(f"Could not load the image: {filepath}")
                 self.setCursor(Qt.ArrowCursor)
                 return
 
@@ -799,7 +792,6 @@ class MainWindow(QMainWindow):
             MsgDialog(
                 parent=self, title=title, msg=error_msg, type=QMessageBox.Critical
             )
-            print(f"GradCAM error: {e}")
             self.setCursor(Qt.ArrowCursor)
 
     def rgb_to_pixmap(self, rgb_img):
@@ -810,7 +802,6 @@ class MainWindow(QMainWindow):
         return QPixmap.fromImage(qimg.copy())
 
     def change_language(self, language):
-        print(f"change_language called with: {language}")
         self.current_language = language
 
         # Save current setting
@@ -899,7 +890,6 @@ class MainWindow(QMainWindow):
             return  # user canceled
 
         try:
-            print(self.last_results)
             with open(filepath, "w", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Filepath", "Class", "Probability (%)"])
