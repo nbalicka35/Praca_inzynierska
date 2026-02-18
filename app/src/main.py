@@ -853,7 +853,6 @@ class MainWindow(QMainWindow):
 
     def rebuild_result_card(self):
         self.clear_results()
-
         if self.sorted_results is None:
             return
 
@@ -868,6 +867,7 @@ class MainWindow(QMainWindow):
 
         self.card.results_layout.addStretch()
         self.update_confidence_bar_visibility()
+        self.card.export_button.setEnabled(True)
 
     def export_to_csv(self):
         if self.last_results is None:
